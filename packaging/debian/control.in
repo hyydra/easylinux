@@ -15,3 +15,8 @@ Description: One-command Linux desktop and hardware settings with a safety net
  change is snapshotted first, GRUB is hardened so the boot menu never waits
  forever, and a boot guard rolls changes back if the desktop stops coming up.
  Undo anytime with: sudo easylinux --rollback
+ .
+ WARNING: experimental and risky. It modifies /etc, the initramfs and the GRUB
+ configuration as root, and was tested on a single machine (ThinkPad X280,
+ Ubuntu, XFCE, GRUB, systemd). The safety net lowers the risk but does not
+ remove it. Keep a live USB at hand and read the scripts before installing.

@@ -2,6 +2,11 @@
 
 A curated collection of automated fixers, watchdogs, and desktop utilities for Linux.
 
+> ## ⚠️ Experimental and risky
+> **EN:** easylinux is experimental software. It changes system files (`/etc`, initramfs, the GRUB configuration), installs packages and runs as root. A mistake can leave a machine unable to boot or without a working desktop. It was written and tested on one machine (ThinkPad X280, Ubuntu, XFCE, GRUB, systemd); other distros, init systems and bootloaders are untested. The safety net (snapshots, GRUB guard, boot guard, `easylinux --rollback`) lowers the risk but **does not remove it**; it cannot help if the kernel or bootloader itself fails to start. Read the scripts before running them, keep a live USB at hand, back up your data, and do not use it on a machine you cannot afford to repair. No warranty.
+>
+> **HU:** Az easylinux **kísérleti és kockázatos**. Rendszerfájlokat (`/etc`, initramfs, GRUB-konfiguráció) módosít, csomagokat telepít, és rootként fut. Egy hiba után a gép nem biztos, hogy elindul vagy használható asztala lesz. Egyetlen gépen készült és ott lett tesztelve (ThinkPad X280, Ubuntu, XFCE, GRUB, systemd), minden más disztró, init rendszer és bootloader kipróbálatlan. A biztonsági háló (snapshot, GRUB-védelem, boot guard, `easylinux --rollback`) csökkenti a kockázatot, de **nem szünteti meg**: ha maga a kernel vagy a bootloader nem indul, nem segít. Futtatás előtt olvasd el a scripteket, legyen kéznél live USB, mentsd az adataidat, és ne használd olyan gépen, amelyet nem tudsz megjavítani. Garancia nincs.
+
 ## The idea (a lényeg)
 
 **EN:** Take a fresh Linux install and make it behave the way you expect, in one command, on any machine: Windows-style `Ctrl+C` / `Ctrl+V` everywhere (never Shift+Ctrl), one global keyboard layout, a desktop panel that restarts itself, working hardware (touchpad, TrackPoint, sleep/resume). Every change is **safe to try**: system files are snapshotted first, GRUB is hardened so you never get stuck at the boot menu, and a boot guard rolls everything back by itself if the machine stops reaching the desktop. Scripts are idempotent, detect the system they run on (distro, init, bootloader), and say clearly what they did and what they skipped.

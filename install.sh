@@ -63,6 +63,8 @@ install_all() {
 show_menu() {
     echo "========================================="
     echo "            easylinux installer          "
+    echo "  EXPERIMENTAL and RISKY: changes system "
+    echo "  files and GRUB. Read the README first. "
     echo "========================================="
     echo "1) Install XFCE Panel Auto-Restart Watchdog"
     echo "2) Apply ThinkPad X280 Hardware & Driver Fixes (requires sudo)"
