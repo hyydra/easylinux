@@ -2,6 +2,18 @@
 
 A curated collection of automated fixers, watchdogs, and desktop utilities for Linux.
 
+## The idea (a lényeg)
+
+**EN:** Take a fresh Linux install and make it behave the way you expect, in one command, on any machine: Windows-style `Ctrl+C` / `Ctrl+V` everywhere (never Shift+Ctrl), one global keyboard layout, a desktop panel that restarts itself, working hardware (touchpad, TrackPoint, sleep/resume). Every change is **safe to try**: system files are snapshotted first, GRUB is hardened so you never get stuck at the boot menu, and a boot guard rolls everything back by itself if the machine stops reaching the desktop. Scripts are idempotent, detect the system they run on (distro, init, bootloader), and say clearly what they did and what they skipped.
+
+**HU:** Egy friss Linux telepítést egy paranccsal, bármelyik gépen úgy viselkedővé tenni, ahogy az ember megszokta: mindenhol Windows-szerű `Ctrl+C` / `Ctrl+V` (soha Shift+Ctrl), egyetlen globális billentyűzetkiosztás, magát újraindító panel, működő hardver (touchpad, TrackPoint, alvás/ébredés). Minden módosítás **biztonságosan kipróbálható**: a rendszerfájlokról előbb snapshot készül, a GRUB úgy van beállítva, hogy soha ne ragadj a menüben, és ha a gép nem jut el az asztalig, a boot guard magától visszaállít mindent. A scriptek újrafuttathatók, felismerik a rendszert (disztró, init, bootloader), és kiírják, mit csináltak és mit hagytak ki.
+
+**Principles / Alapelvek**
+1. Never leave the machine unbootable: snapshot, rollback, GRUB guard, boot guard.
+2. Detect, don't assume: no hard-wired distro, init or desktop where it can be avoided.
+3. Idempotent and reversible: run twice, same result; every module can be undone.
+4. Honest output: what was changed, what was skipped, what was not tested.
+
 ## Modules
 
 ### 1. Desktop Tweaks (`desktop/`)
@@ -14,6 +26,10 @@ A curated collection of automated fixers, watchdogs, and desktop utilities for L
 #### XFCE Global Keyboard Layout (`desktop/xfce-global-keyboard`)
 - Prevents language/layout resets between different application windows.
 - Enforces a single global layout policy across the entire desktop.
+
+#### Windows-style Clipboard (`desktop/windows-clipboard`)
+- `Ctrl+C` / `Ctrl+V` copy and paste everywhere, including the terminal; never Shift+Ctrl.
+- Uses the `kitty` terminal: selection + `Ctrl+C` copies, no selection + `Ctrl+C` still interrupts (also over ssh), like Windows Terminal.
 
 ### 2. Hardware Tweaks (`hardware/`)
 
@@ -66,6 +82,9 @@ You can run individual modules directly via command-line flags:
 
 # Enforce global keyboard layout (no per-window switching)
 ./install.sh --keyboard
+
+# Windows-style Ctrl+C / Ctrl+V everywhere (installs and defaults to kitty)
+./install.sh --clipboard
 
 # Apply ThinkPad hardware & driver fixes
 ./install.sh --thinkpad
