@@ -7,6 +7,19 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=../../safety/lib.sh
+source "$SCRIPT_DIR/../../safety/lib.sh"
+
+echo "=== 0. Creating safety snapshot (undo: sudo easylinux-rollback) ==="
+es_begin thinkpad-fixes
+es_backup /etc/modprobe.d/psmouse.conf
+es_backup /etc/systemd/system-sleep/touchpad-reload.sh
+es_backup /etc/udev/rules.d/99-lenovo-charge-fix.rules
+es_backup /etc/modprobe.d/alsa-base.conf
+es_backup_initramfs
+es_arm
+
 echo "=== 1. Fixing Touchpad & TrackPoint SMBus/PS2 Driver Bug ==="
 cat << 'EOF' > /etc/modprobe.d/psmouse.conf
 # Fix physical TrackPoint buttons & Synaptics clickpad SMBus passthrough conflicts on ThinkPad X280
@@ -54,7 +67,7 @@ echo "[✓] Cleared /var/crash and reset failed systemd units"
 
 echo "=== 6. Updating Initramfs ==="
 echo "Updating initramfs with new psmouse configuration (may take a few seconds)..."
-update-initramfs -u
+es_rebuild_initramfs
 
 echo "=== 7. Reloading PS/2 Mouse Driver Now ==="
 modprobe -r psmouse 2>/dev/null || true

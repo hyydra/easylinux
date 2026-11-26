@@ -27,6 +27,29 @@ A curated collection of automated fixers, watchdogs, and desktop utilities for L
 - Configures `synaptics` driver for a 50/50 vertical division across the full height of the pad ($X_{\text{half}} = 968$).
 - Retains natural two-finger scrolling and tap-to-click.
 
+### 3. Safety Net (`safety/`)
+Distro-, init- and bootloader-independent. Every script that changes system files first runs `es_arm`, which detects the system (distro, init, bootloader, initramfs tool, kernels) and enables four layers. A layer that does not fit the system is skipped with a notice, never silently.
+
+| Layer | What it does | Needs |
+|---|---|---|
+| 1. File snapshot | Copies every file it is about to change (plus the initramfs images) to `/var/backups/easylinux/<snapshot>/` and records files that did not exist | nothing (POSIX sh) |
+| 2. FS snapshot | Creates a `snapper` snapshot; `ES_FS_SNAPSHOT=1` also does a `timeshift` one | snapper / timeshift |
+| 3. GRUB guard | Makes sure the menu is visible, times out and **never waits forever** after a failed boot (Ubuntu's default `GRUB_RECORDFAIL_TIMEOUT=-1` leaves you stuck at GRUB; a hidden menu hides the older kernels). The new `grub.cfg` is generated to a temp file, validated with `grub-script-check`, and only then swapped in | GRUB (Debian/Ubuntu/Fedora/Arch/SUSE) |
+| 4. Boot guard | If the next boot never reaches a desktop (or, on a headless box, a stable boot), the following boot rolls everything back before the display manager starts. A clean shutdown from a working desktop counts as healthy | systemd (OpenRC: best-effort, untested) |
+
+**Undo**
+- Normal system: `sudo easylinux-rollback` (or `./install.sh --rollback`). `--list`, `--status`, or a specific snapshot dir are also accepted.
+- GRUB menu: *Advanced options* -> an older kernel (its initramfs is never touched by easylinux) or *recovery mode* -> root shell, then `mount -o remount,rw / && easylinux-rollback`.
+- Stuck at `grub rescue>`: `ls` to find the root partition, then `set root=(hd0,gpt2)`, `set prefix=(hd0,gpt2)/boot/grub`, `insmod normal`, `normal`. Once booted run `sudo update-grub` (or `easylinux-rollback`).
+- Nothing boots: start a live USB, mount the root partition on `/mnt` (and `/boot`, `/boot/efi` if separate), then
+  `sh /mnt/var/backups/easylinux/latest/rollback.sh --root /mnt`. Each snapshot carries its own copy of the rollback script.
+
+**Limits (be honest)**
+- If the kernel or the bootloader itself cannot start, no userspace guard can run. That is what layers 1-3, the older kernel and the live-USB path are for. Keep at least two kernels installed (`easylinux` warns if there is only one).
+- Not rolled back: packages installed with the package manager (the snapshot prints a note with the removal command) and the user-level modules (the panel watchdog has `uninstall.sh`).
+- NixOS / ostree systems regenerate `/etc`, so rollback is best-effort there.
+- Tested here: Ubuntu + systemd + GRUB (file logic, GRUB hardening, guard logic, `--root`). Not tested on real Fedora/Arch/OpenRC/systemd-boot systems.
+
 ## Quick Start
 
 ```bash
@@ -52,4 +75,7 @@ You can run individual modules directly via command-line flags:
 
 # Apply everything
 ./install.sh --all
+
+# Undo the last system change (snapshot restore)
+./install.sh --rollback
 ```

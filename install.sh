@@ -73,8 +73,12 @@ else
             echo ""
             sudo bash "$ROOT_DIR/hardware/thinkpad-x280/setup-touchpad-split.sh"
             ;;
+        --rollback)
+            shift
+            sudo bash "$ROOT_DIR/safety/easylinux-rollback.sh" "$@"
+            ;;
         *)
-            echo "Usage: $0 [--panel | --thinkpad | --touchpad | --keyboard | --all]"
+            echo "Usage: $0 [--panel | --thinkpad | --touchpad | --keyboard | --all | --rollback [--list|snapshot]]"
             exit 1
             ;;
     esac

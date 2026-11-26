@@ -1,0 +1,20 @@
+#!/sbin/openrc-run
+# easylinux boot guard for OpenRC (best-effort, untested on real OpenRC systems)
+description="easylinux boot guard (roll back unconfirmed changes)"
+
+depend() {
+    need localmount
+    before display-manager xdm lightdm gdm sddm
+}
+
+start() {
+    ebegin "easylinux boot guard"
+    /usr/local/sbin/easylinux-boot-guard start
+    start-stop-daemon --start --background --exec /usr/local/sbin/easylinux-boot-guard -- confirm
+    eend 0
+}
+
+stop() {
+    /usr/local/sbin/easylinux-boot-guard confirm-now
+    return 0
+}

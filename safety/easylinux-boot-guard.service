@@ -1,0 +1,11 @@
+[Unit]
+Description=easylinux boot guard (roll back unconfirmed changes)
+After=local-fs.target
+Before=display-manager.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/easylinux-boot-guard start
+
+[Install]
+WantedBy=multi-user.target

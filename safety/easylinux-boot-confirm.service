@@ -1,0 +1,11 @@
+[Unit]
+Description=easylinux boot confirmation (disarm guard once the desktop is up)
+After=multi-user.target display-manager.service
+
+[Service]
+Type=simple
+ExecStart=/usr/local/sbin/easylinux-boot-guard confirm
+ExecStop=/usr/local/sbin/easylinux-boot-guard confirm-now
+
+[Install]
+WantedBy=multi-user.target
