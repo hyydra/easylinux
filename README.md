@@ -47,6 +47,7 @@ A curated collection of automated fixers, watchdogs, and desktop utilities for L
 - Fixes `libinput` issue where mid/top clicks on the right side register as left clicks.
 - Configures `synaptics` driver for a 50/50 vertical division across the full height of the pad ($X_{\text{half}} = 968$).
 - Retains natural two-finger scrolling and tap-to-click.
+- Flip the scroll direction any time: `easylinux --scroll natural|traditional|toggle` (applies immediately, persists for the next login via the X config; undo with `easylinux --rollback`).
 
 ### 3. Safety Net (`safety/`)
 Distro-, init- and bootloader-independent. Every script that changes system files first runs `es_arm`, which detects the system (distro, init, bootloader, initramfs tool, kernels) and enables four layers. A layer that does not fit the system is skipped with a notice, never silently.

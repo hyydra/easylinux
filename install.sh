@@ -136,6 +136,10 @@ else
         --boot)
             as_root bash "$ROOT_DIR/safety/harden-boot.sh"
             ;;
+        --scroll)
+            shift
+            EASYLINUX_PROG="$PROG" bash "$ROOT_DIR/hardware/thinkpad-x280/set-scroll-direction.sh" "$@"
+            ;;
         --version)
             cat "$ROOT_DIR/VERSION" 2>/dev/null || echo "unknown"
             ;;
@@ -144,7 +148,7 @@ else
             as_root bash "$ROOT_DIR/safety/easylinux-rollback.sh" "$@"
             ;;
         *)
-            echo "Usage: ${PROG##*/} [--user | --system | --boot | --version | --panel | --thinkpad | --touchpad | --keyboard | --clipboard | --all | --rollback [--list|snapshot]]"
+            echo "Usage: ${PROG##*/} [--user | --system | --boot | --version | --panel | --thinkpad | --touchpad | --keyboard | --clipboard | --scroll natural|traditional|toggle | --all | --rollback [--list|snapshot]]"
             exit 1
             ;;
     esac
