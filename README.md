@@ -72,6 +72,13 @@ Distro-, init- and bootloader-independent. Every script that changes system file
 - NixOS / ostree systems regenerate `/etc`, so rollback is best-effort there.
 - Tested here: Ubuntu + systemd + GRUB (file logic, GRUB hardening, guard logic, `--root`). Not tested on real Fedora/Arch/OpenRC/systemd-boot systems.
 
+## Development
+
+```bash
+make test        # runs tests/run.sh: rollback, GRUB hardening, boot guard, modules, .deb build
+```
+The tests run fully sandboxed (temp dirs, stubbed `sudo`, fake `grub-mkconfig`); they never touch the real `/etc`, GRUB or packages. They also run on every push (GitHub Actions) and gate every release. What they cannot cover: real boots, real GRUB, real hardware, non-Ubuntu distros.
+
 ## Install as a package
 
 ```bash

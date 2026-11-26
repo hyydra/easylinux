@@ -9,7 +9,7 @@
 set -euo pipefail
 
 SELF="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_SOURCE[0]}")"
-CONFS=(/etc/X11/xorg.conf.d/70-synaptics.conf /etc/X11/xorg.conf.d/99-synaptics-custom.conf)
+IFS=: read -ra CONFS <<< "${EASYLINUX_SCROLL_CONFS:-/etc/X11/xorg.conf.d/70-synaptics.conf:/etc/X11/xorg.conf.d/99-synaptics-custom.conf}"
 
 current_direction() {
     local conf

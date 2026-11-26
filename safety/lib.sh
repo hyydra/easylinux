@@ -11,7 +11,7 @@
 #   3. GRUB never waits forever / always shows a menu (so you can't get stuck)
 #   4. boot guard: auto-rollback if the next boot never reaches a desktop
 #
-# Test knobs: ES_TEST=1 skips system side effects; ES_BACKUP_DIR, ES_STATE_DIR,
+# Test knobs: ES_TEST=1 skips system side effects, ES_NO_GRUB=1 skips GRUB; ES_BACKUP_DIR, ES_STATE_DIR,
 # ES_GRUB_DEFAULT, ES_GRUB_DROPIN_DIR, ES_GRUB_CFG redirect paths.
 
 ES_BACKUP_DIR="${ES_BACKUP_DIR:-/var/backups/easylinux}"
@@ -202,6 +202,7 @@ es_grub_set_key() {     # edit /etc/default/grub in place
 }
 
 es_grub_safety() {
+    [ -z "${ES_NO_GRUB:-}" ] || return 0     # test knob: never touch GRUB
     [ "$ES_BOOTLOADER" = grub ] || return 0
     local style timeout rf want_style want_timeout want_rf
     read -r style timeout rf <<< "$(es_grub_effective)"

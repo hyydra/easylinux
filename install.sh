@@ -21,7 +21,7 @@ step() {
 }
 
 is_thinkpad_x280() {
-    grep -qs 'ThinkPad X280' /sys/class/dmi/id/product_version
+    grep -qs 'ThinkPad X280' "${EASYLINUX_DMI_FILE:-/sys/class/dmi/id/product_version}"
 }
 
 # Per-user settings (no root): safe to run from a login script.

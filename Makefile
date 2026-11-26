@@ -4,7 +4,7 @@ DESTDIR ?=
 VERSION := $(shell cat VERSION)
 SHARE   := $(DESTDIR)$(PREFIX)/share/easylinux
 
-.PHONY: install uninstall deb tarball clean
+.PHONY: install uninstall deb tarball test clean
 
 install:
 	install -d $(SHARE) $(DESTDIR)$(PREFIX)/bin $(DESTDIR)/etc/easylinux $(DESTDIR)/etc/xdg/autostart
@@ -20,6 +20,9 @@ uninstall:
 	rm -rf $(SHARE)
 	rm -f $(DESTDIR)$(PREFIX)/bin/easylinux $(DESTDIR)$(PREFIX)/bin/easylinux-user-setup
 	rm -f $(DESTDIR)/etc/xdg/autostart/easylinux-user.desktop
+
+test:
+	bash tests/run.sh
 
 deb:
 	bash packaging/build-deb.sh
