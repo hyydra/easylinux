@@ -66,6 +66,21 @@ Distro-, init- and bootloader-independent. Every script that changes system file
 - NixOS / ostree systems regenerate `/etc`, so rollback is best-effort there.
 - Tested here: Ubuntu + systemd + GRUB (file logic, GRUB hardening, guard logic, `--root`). Not tested on real Fedora/Arch/OpenRC/systemd-boot systems.
 
+## Install as a package
+
+```bash
+make deb                                   # builds dist/easylinux_<version>_all.deb
+sudo apt install ./dist/easylinux_0.1.0_all.deb
+```
+Installing the package applies the settings, with the safety net armed first:
+- **At install time (root):** GRUB hardening + rollback tool + boot guard on every machine, and the ThinkPad X280 fixes only on an X280 (`easylinux --system`).
+- **At each user's next login (once per version):** global keyboard layout, panel watchdog, Windows-style Ctrl+C/V (`easylinux --user`).
+- `kitty` and `xserver-xorg-input-synaptics` are pulled in as recommended packages (the package manager does it; scripts never call `apt` from inside dpkg).
+- Opt out in `/etc/easylinux/easylinux.conf` (`AUTO_SYSTEM=0`, `AUTO_USER=0`), then run `sudo easylinux --system` / `easylinux --user` yourself.
+- Undo: `sudo easylinux --rollback`.
+
+Other distros: `sudo make install` (generic, `PREFIX=/usr/local` works too) or `make tarball`. Pushing a tag `vX.Y.Z` (matching `VERSION`) makes the GitHub workflow publish the `.deb` and tarball as a release.
+
 ## Quick Start
 
 ```bash
@@ -94,6 +109,10 @@ You can run individual modules directly via command-line flags:
 
 # Apply everything
 ./install.sh --all
+
+# What the package does automatically
+./install.sh --user      # per-user settings (no root)
+./install.sh --system    # boot hardening everywhere + hardware fixes where they apply
 
 # Undo the last system change (snapshot restore)
 ./install.sh --rollback

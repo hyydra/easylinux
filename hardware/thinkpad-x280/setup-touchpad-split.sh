@@ -22,8 +22,12 @@ fi
 es_arm
 
 echo "=== 1. Installing xserver-xorg-input-synaptics ==="
-apt-get update -y
-apt-get install -y xserver-xorg-input-synaptics
+if [ -n "${EASYLINUX_NO_PKG:-}" ]; then
+    echo "[skip] package installation disabled (running inside a package manager); the package depends on it"
+else
+    apt-get update -y
+    apt-get install -y xserver-xorg-input-synaptics
+fi
 
 echo "=== 2. Deploying Touchpad Split Configuration ==="
 mkdir -p /etc/X11/xorg.conf.d

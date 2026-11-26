@@ -14,6 +14,10 @@ echo "==> Windows-style clipboard (Ctrl+C / Ctrl+V)"
 
 install_kitty() {
     command -v kitty >/dev/null 2>&1 && return 0
+    if [ -n "${EASYLINUX_NO_PKG:-}" ]; then
+        echo "[!] kitty is not installed and package installation is disabled here"
+        return 1
+    fi
     echo "[!] kitty is not installed; installing it with the system package manager (needs sudo)"
     if   command -v apt-get >/dev/null 2>&1; then sudo apt-get install -y kitty
     elif command -v dnf     >/dev/null 2>&1; then sudo dnf install -y kitty

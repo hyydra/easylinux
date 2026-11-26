@@ -1,0 +1,12 @@
+#!/bin/sh
+set -e
+if [ "$1" = configure ]; then
+    AUTO_SYSTEM=1
+    [ -r /etc/easylinux/easylinux.conf ] && . /etc/easylinux/easylinux.conf
+    if [ "$AUTO_SYSTEM" = 1 ]; then
+        # Never fail the package installation because of a tweak.
+        EASYLINUX_NO_PKG=1 /usr/bin/easylinux --system \
+            || echo "easylinux: some system settings were not applied (see above); retry with: sudo easylinux --system" >&2
+    fi
+fi
+exit 0

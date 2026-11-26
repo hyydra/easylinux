@@ -2,6 +2,51 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROG="${EASYLINUX_PROG:-$0}"
+
+as_root() {
+    if [ "$(id -u)" -eq 0 ]; then "$@"; else sudo "$@"; fi
+}
+
+# Run one step; never abort the whole run because one module is not applicable.
+FAILED=0
+step() {
+    local name="$1"; shift
+    echo ""
+    echo "### $name"
+    if ! "$@"; then
+        echo "[!] $name failed"
+        FAILED=1
+    fi
+}
+
+is_thinkpad_x280() {
+    grep -qs 'ThinkPad X280' /sys/class/dmi/id/product_version
+}
+
+# Per-user settings (no root): safe to run from a login script.
+apply_user() {
+    if command -v xfce4-panel >/dev/null 2>&1 && command -v xfconf-query >/dev/null 2>&1; then
+        step "XFCE panel watchdog" bash "$ROOT_DIR/desktop/xfce-panel-watchdog/install.sh"
+        step "Global keyboard layout" bash "$ROOT_DIR/desktop/xfce-global-keyboard/set-global-keyboard.sh"
+    else
+        echo "[skip] XFCE not found: panel watchdog and global keyboard layout"
+    fi
+    step "Windows-style clipboard" bash "$ROOT_DIR/desktop/windows-clipboard/install.sh"
+    return "$FAILED"
+}
+
+# System settings (root): boot hardening everywhere, hardware fixes only where they apply.
+apply_system() {
+    step "Boot hardening (GRUB guard, rollback)" as_root bash "$ROOT_DIR/safety/harden-boot.sh"
+    if is_thinkpad_x280; then
+        step "ThinkPad X280 fixes" as_root bash "$ROOT_DIR/hardware/thinkpad-x280/fix-system-errors.sh"
+        step "ThinkPad X280 touchpad split" as_root bash "$ROOT_DIR/hardware/thinkpad-x280/setup-touchpad-split.sh"
+    else
+        echo "[skip] Not a ThinkPad X280: hardware fixes not applied"
+    fi
+    return "$FAILED"
+}
 
 install_all() {
     bash "$ROOT_DIR/desktop/xfce-panel-watchdog/install.sh"
@@ -10,9 +55,9 @@ install_all() {
     echo ""
     bash "$ROOT_DIR/desktop/windows-clipboard/install.sh"
     echo ""
-    sudo bash "$ROOT_DIR/hardware/thinkpad-x280/fix-system-errors.sh"
+    as_root bash "$ROOT_DIR/hardware/thinkpad-x280/fix-system-errors.sh"
     echo ""
-    sudo bash "$ROOT_DIR/hardware/thinkpad-x280/setup-touchpad-split.sh"
+    as_root bash "$ROOT_DIR/hardware/thinkpad-x280/setup-touchpad-split.sh"
 }
 
 show_menu() {
@@ -33,10 +78,10 @@ show_menu() {
             bash "$ROOT_DIR/desktop/xfce-panel-watchdog/install.sh"
             ;;
         2)
-            sudo bash "$ROOT_DIR/hardware/thinkpad-x280/fix-system-errors.sh"
+            as_root bash "$ROOT_DIR/hardware/thinkpad-x280/fix-system-errors.sh"
             ;;
         3)
-            sudo bash "$ROOT_DIR/hardware/thinkpad-x280/setup-touchpad-split.sh"
+            as_root bash "$ROOT_DIR/hardware/thinkpad-x280/setup-touchpad-split.sh"
             ;;
         4)
             bash "$ROOT_DIR/desktop/xfce-global-keyboard/set-global-keyboard.sh"
@@ -66,10 +111,10 @@ else
             bash "$ROOT_DIR/desktop/xfce-panel-watchdog/install.sh"
             ;;
         --thinkpad)
-            sudo bash "$ROOT_DIR/hardware/thinkpad-x280/fix-system-errors.sh"
+            as_root bash "$ROOT_DIR/hardware/thinkpad-x280/fix-system-errors.sh"
             ;;
         --touchpad)
-            sudo bash "$ROOT_DIR/hardware/thinkpad-x280/setup-touchpad-split.sh"
+            as_root bash "$ROOT_DIR/hardware/thinkpad-x280/setup-touchpad-split.sh"
             ;;
         --keyboard)
             bash "$ROOT_DIR/desktop/xfce-global-keyboard/set-global-keyboard.sh"
@@ -80,12 +125,24 @@ else
         --all)
             install_all
             ;;
+        --user)
+            apply_user
+            ;;
+        --system)
+            apply_system
+            ;;
+        --boot)
+            as_root bash "$ROOT_DIR/safety/harden-boot.sh"
+            ;;
+        --version)
+            cat "$ROOT_DIR/VERSION" 2>/dev/null || echo "unknown"
+            ;;
         --rollback)
             shift
-            sudo bash "$ROOT_DIR/safety/easylinux-rollback.sh" "$@"
+            as_root bash "$ROOT_DIR/safety/easylinux-rollback.sh" "$@"
             ;;
         *)
-            echo "Usage: $0 [--panel | --thinkpad | --touchpad | --keyboard | --clipboard | --all | --rollback [--list|snapshot]]"
+            echo "Usage: ${PROG##*/} [--user | --system | --boot | --version | --panel | --thinkpad | --touchpad | --keyboard | --clipboard | --all | --rollback [--list|snapshot]]"
             exit 1
             ;;
     esac

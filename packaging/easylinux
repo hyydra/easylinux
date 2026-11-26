@@ -1,0 +1,4 @@
+#!/bin/sh
+# easylinux command: thin wrapper around the installed install.sh
+dir="$(dirname "$(readlink -f "$0")")/../share/easylinux"
+EASYLINUX_PROG=easylinux exec bash "$dir/install.sh" "$@"
