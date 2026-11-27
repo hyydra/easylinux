@@ -99,12 +99,18 @@ assert_file "$SB/sbinb/easylinux-kbd-backlight-max" "helper installed"
 assert_contains "$SB/etcb/systemd/system/easylinux-kbd-backlight.service" "ExecStart=$SB/sbinb/easylinux-kbd-backlight-max" "boot service runs the helper"
 assert_contains "$SB/etcb/systemd/system/easylinux-kbd-backlight.service" "WantedBy=multi-user.target" "boot service is enabled for normal boots (after systemd-backlight)"
 assert_no_file "$SB/etcb/udev/rules.d/90-easylinux-kbd-backlight.rules" "old udev rule is not used on systemd"
-assert_contains "$SB/etcb/systemd/system-sleep/easylinux-kbd-backlight" "easylinux-kbd-backlight-max" "sleep hook calls the helper"
+assert_contains "$SB/etcb/systemd/system/easylinux-kbd-backlight-resume.service" "WantedBy=suspend.target" "resume service is tied to suspend.target"
+assert_contains "$SB/etcb/systemd/system/easylinux-kbd-backlight-resume.service" "sleep 1; $SB/sbinb/easylinux-kbd-backlight-max" "resume service waits, then calls the helper"
+assert_no_file "$SB/etcb/systemd/system-sleep/easylinux-kbd-backlight" "no sleep hook on systemd (the resume service replaces it)"
 mkdir -p "$SB/led"; echo 2 > "$SB/led/max_brightness"; echo 0 > "$SB/led/brightness"
 sed "s|/sys/class/leds/\*kbd_backlight|$SB/led|" "$SB/sbinb/easylinux-kbd-backlight-max" > "$SB/helper-test"
 sh "$SB/helper-test"; assert_eq "$(cat "$SB/led/brightness")" 2 "helper sets the LED to max_brightness"
-sh "$SB/etcb/systemd/system-sleep/easylinux-kbd-backlight" pre; sh "$SB/etcb/systemd/system-sleep/easylinux-kbd-backlight" post
-assert_eq "$?" 0 "sleep hook exits cleanly"
+
+echo "-- suspend keys"
+printf '#!/bin/sh\necho "$@" >> %s/xfconf\n' "$SB" > "$SB/bin/xfconf-query"; chmod +x "$SB/bin/xfconf-query"
+PATH="$SB/bin:$PATH" bash desktop/suspend-keys/install.sh >/dev/null 2>&1
+assert_contains "$SB/xfconf" "/commands/custom/XF86Suspend -n -t string -s systemctl suspend" "XF86Suspend bound to systemctl suspend"
+assert_contains "$SB/xfconf" "/commands/custom/XF86Sleep -n -t string -s systemctl suspend" "Fn+4 (XF86Sleep) bound"
 
 echo "-- keyring module"
 S=desktop/keyring/setup-keyring.sh

@@ -35,6 +35,7 @@ apply_user() {
     step "Windows-style clipboard" bash "$ROOT_DIR/desktop/windows-clipboard/install.sh"
     if command -v xfconf-query >/dev/null 2>&1; then
         step "Keyboard backlight keys" bash "$ROOT_DIR/desktop/kbd-backlight/install.sh"
+        step "Suspend keys" bash "$ROOT_DIR/desktop/suspend-keys/install.sh"
     fi
     return "$FAILED"
 }
@@ -61,6 +62,8 @@ install_all() {
     bash "$ROOT_DIR/desktop/windows-clipboard/install.sh"
     echo ""
     bash "$ROOT_DIR/desktop/kbd-backlight/install.sh"
+    echo ""
+    bash "$ROOT_DIR/desktop/suspend-keys/install.sh"
     echo ""
     as_root bash "$ROOT_DIR/desktop/keyring/setup-keyring.sh"
     echo ""
@@ -146,6 +149,9 @@ else
         --kbd-backlight)
             bash "$ROOT_DIR/desktop/kbd-backlight/install.sh"
             ;;
+        --suspend-keys)
+            bash "$ROOT_DIR/desktop/suspend-keys/install.sh"
+            ;;
         --kbd-backlight-boot)
             as_root bash "$ROOT_DIR/desktop/kbd-backlight/setup-boot.sh"
             ;;
@@ -176,7 +182,7 @@ else
             as_root bash "$ROOT_DIR/safety/easylinux-rollback.sh" "$@"
             ;;
         *)
-            echo "Usage: ${PROG##*/} [--user | --system | --boot | --version | --panel | --thinkpad | --touchpad | --keyboard | --clipboard | --kbd-backlight | --kbd-backlight-boot | --keyring | --scroll natural|traditional|toggle | --all | --rollback [--list|snapshot]]"
+            echo "Usage: ${PROG##*/} [--user | --system | --boot | --version | --panel | --thinkpad | --touchpad | --keyboard | --clipboard | --kbd-backlight | --kbd-backlight-boot | --suspend-keys | --keyring | --scroll natural|traditional|toggle | --all | --rollback [--list|snapshot]]"
             exit 1
             ;;
     esac

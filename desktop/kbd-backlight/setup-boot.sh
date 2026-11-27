@@ -3,7 +3,8 @@
 # The firmware leaves it off at boot and does not restore it after suspend/hibernate.
 #   - systemd service (boot): must run AFTER systemd-backlight@leds:*kbd_backlight, which restores
 #     the brightness saved at shutdown (usually 0) and would override anything earlier, e.g. udev
-#   - systemd sleep hook: runs after resume
+#   - systemd service tied to suspend.target & co: runs after resume, with a short delay because
+#     the firmware/driver resets the LED after the sleep hooks have already run
 #   - no systemd: a udev rule as a fallback
 # Both call one helper that sets every *kbd_backlight LED to its max_brightness.
 set -euo pipefail
@@ -19,7 +20,8 @@ SBIN="${EASYLINUX_SBIN:-/usr/local/sbin}"
 HELPER="$SBIN/easylinux-kbd-backlight-max"
 RULE="$ETC/udev/rules.d/90-easylinux-kbd-backlight.rules"
 UNIT="$ETC/systemd/system/easylinux-kbd-backlight.service"
-HOOK="$ETC/systemd/system-sleep/easylinux-kbd-backlight"
+HOOK="$ETC/systemd/system-sleep/easylinux-kbd-backlight"   # older versions; removed
+RESUME_UNIT="$ETC/systemd/system/easylinux-kbd-backlight-resume.service"
 
 # shellcheck source=../../safety/lib.sh
 source "$SCRIPT_DIR/../../safety/lib.sh"
@@ -35,6 +37,7 @@ es_backup "$HELPER"
 es_backup "$RULE"
 es_backup "$UNIT"
 es_backup "$HOOK"
+es_backup "$RESUME_UNIT"
 es_arm
 
 mkdir -p "$SBIN" "$(dirname "$RULE")" "$(dirname "$HOOK")"
@@ -69,19 +72,35 @@ ACTION=="add", SUBSYSTEM=="leds", KERNEL=="*kbd_backlight", RUN+="$HELPER"
 EOF
 fi
 
-cat > "$HOOK" <<EOF
+if [ -d /run/systemd/system ] || [ -n "${ES_TEST:-}" ]; then
+    cat > "$RESUME_UNIT" <<EOF
+[Unit]
+Description=easylinux: keyboard backlight to maximum after resume
+After=suspend.target hibernate.target hybrid-sleep.target suspend-then-hibernate.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh -c 'sleep 1; $HELPER'
+
+[Install]
+WantedBy=suspend.target hibernate.target hybrid-sleep.target suspend-then-hibernate.target
+EOF
+    rm -f "$HOOK"
+else
+    cat > "$HOOK" <<EOF
 #!/bin/sh
 # easylinux: keyboard backlight to maximum after suspend/hibernate
 [ "\$1" = post ] && $HELPER
 exit 0
 EOF
-chmod 755 "$HOOK"
+    chmod 755 "$HOOK"
+fi
 
-echo "[✓] Installed $HELPER, $HOOK and the boot trigger"
+echo "[✓] Installed $HELPER and the boot and resume triggers"
 if [ -z "${ES_TEST:-}" ]; then
     if [ -d /run/systemd/system ]; then
         systemctl daemon-reload
-        systemctl enable easylinux-kbd-backlight.service >/dev/null 2>&1
+        systemctl enable easylinux-kbd-backlight.service easylinux-kbd-backlight-resume.service >/dev/null 2>&1
     else
         udevadm control --reload 2>/dev/null || true
     fi

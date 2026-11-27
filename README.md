@@ -38,8 +38,12 @@ A curated collection of automated fixers, watchdogs, and desktop utilities for L
 
 #### Keyboard Backlight Keys (`desktop/kbd-backlight`)
 - XFCE does not bind `XF86KbdBrightnessUp/Down/LightOnOff`, so the backlight (Fn+Space on a ThinkPad) never turned on. Binds them to a small UPower helper (no root): `easylinux --kbd-backlight`.
-- Full brightness after power-on and after every wake-up (the firmware leaves it off): `sudo easylinux --kbd-backlight-boot` (systemd service + sleep hook, as `systemd-backlight` restores the saved "off" state early at boot; also part of `--system`; skipped on machines without a keyboard backlight).
+- Full brightness after power-on and after every wake-up (the firmware leaves it off): `sudo easylinux --kbd-backlight-boot` (systemd services for boot and resume, as `systemd-backlight` restores the saved "off" state early at boot; also part of `--system`; skipped on machines without a keyboard backlight).
 - Fn+Space cycles off / dim / bright; `easylinux-kbd-backlight up|down|cycle|on|off|status` works from a terminal too.
+
+#### Suspend Keys (`desktop/suspend-keys`)
+- On some machines xfce4-power-manager does not act on the suspend keys: logind logs `Suspend key pressed short.` and nothing sleeps (seen on the X280 with Fn+4). Binds `XF86Sleep`, `XF86Suspend` and `XF86PowerOff` straight to `systemctl suspend`: `easylinux --suspend-keys` (per user, no root).
+- The X280 firmware does not deliver a *short* power-button press to the OS at all (the kernel's `ff_pwr_btn` counter stays 0; only the long press, handled in hardware, works). That cannot be fixed in software, so use Fn+4 or the lid.
 
 #### Password Keyring (`desktop/keyring`)
 - Installs GNOME Keyring, its PAM module, Seahorse and `secret-tool` so browsers, Wi-Fi, git and mail clients can store passwords and the keyring unlocks with the login: `sudo easylinux --keyring` (also part of `--system`).
