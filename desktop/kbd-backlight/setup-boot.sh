@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 # Keyboard backlight at full brightness after power-on and after every wake-up.
 # The firmware leaves it off at boot and does not restore it after suspend/hibernate.
-#   - udev rule: runs when the LED device appears (boot)
+#   - systemd service (boot): must run AFTER systemd-backlight@leds:*kbd_backlight, which restores
+#     the brightness saved at shutdown (usually 0) and would override anything earlier, e.g. udev
 #   - systemd sleep hook: runs after resume
+#   - no systemd: a udev rule as a fallback
 # Both call one helper that sets every *kbd_backlight LED to its max_brightness.
 set -euo pipefail
 
@@ -16,6 +18,7 @@ ETC="${EASYLINUX_ETC:-/etc}"
 SBIN="${EASYLINUX_SBIN:-/usr/local/sbin}"
 HELPER="$SBIN/easylinux-kbd-backlight-max"
 RULE="$ETC/udev/rules.d/90-easylinux-kbd-backlight.rules"
+UNIT="$ETC/systemd/system/easylinux-kbd-backlight.service"
 HOOK="$ETC/systemd/system-sleep/easylinux-kbd-backlight"
 
 # shellcheck source=../../safety/lib.sh
@@ -30,6 +33,7 @@ fi
 es_begin kbd-backlight-boot
 es_backup "$HELPER"
 es_backup "$RULE"
+es_backup "$UNIT"
 es_backup "$HOOK"
 es_arm
 
@@ -44,10 +48,26 @@ exit 0
 EOF
 chmod 755 "$HELPER"
 
-cat > "$RULE" <<EOF
+if [ -d /run/systemd/system ] || [ -n "${ES_TEST:-}" ]; then
+    mkdir -p "$(dirname "$UNIT")"
+    cat > "$UNIT" <<EOF
+[Unit]
+Description=easylinux: keyboard backlight to maximum
+
+[Service]
+Type=oneshot
+ExecStart=$HELPER
+
+[Install]
+WantedBy=multi-user.target
+EOF
+    rm -f "$RULE"   # an earlier version used a udev rule, which systemd-backlight overrode
+else
+    cat > "$RULE" <<EOF
 # easylinux: keyboard backlight to maximum when the LED appears (boot)
 ACTION=="add", SUBSYSTEM=="leds", KERNEL=="*kbd_backlight", RUN+="$HELPER"
 EOF
+fi
 
 cat > "$HOOK" <<EOF
 #!/bin/sh
@@ -57,9 +77,14 @@ exit 0
 EOF
 chmod 755 "$HOOK"
 
-echo "[✓] Installed $HELPER, $RULE, $HOOK"
+echo "[✓] Installed $HELPER, $HOOK and the boot trigger"
 if [ -z "${ES_TEST:-}" ]; then
-    udevadm control --reload 2>/dev/null || true
+    if [ -d /run/systemd/system ]; then
+        systemctl daemon-reload
+        systemctl enable easylinux-kbd-backlight.service >/dev/null 2>&1
+    else
+        udevadm control --reload 2>/dev/null || true
+    fi
     "$HELPER"
     echo "[✓] Backlight set to maximum now"
 fi

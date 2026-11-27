@@ -38,7 +38,7 @@ A curated collection of automated fixers, watchdogs, and desktop utilities for L
 
 #### Keyboard Backlight Keys (`desktop/kbd-backlight`)
 - XFCE does not bind `XF86KbdBrightnessUp/Down/LightOnOff`, so the backlight (Fn+Space on a ThinkPad) never turned on. Binds them to a small UPower helper (no root): `easylinux --kbd-backlight`.
-- Full brightness after power-on and after every wake-up (the firmware leaves it off): `sudo easylinux --kbd-backlight-boot` (udev rule + systemd sleep hook; also part of `--system`; skipped on machines without a keyboard backlight).
+- Full brightness after power-on and after every wake-up (the firmware leaves it off): `sudo easylinux --kbd-backlight-boot` (systemd service + sleep hook, as `systemd-backlight` restores the saved "off" state early at boot; also part of `--system`; skipped on machines without a keyboard backlight).
 - Fn+Space cycles off / dim / bright; `easylinux-kbd-backlight up|down|cycle|on|off|status` works from a terminal too.
 
 #### Password Keyring (`desktop/keyring`)
