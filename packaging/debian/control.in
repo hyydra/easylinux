@@ -4,7 +4,7 @@ Section: utils
 Priority: optional
 Architecture: all
 Depends: bash, coreutils, findutils, procps
-Recommends: kitty, xserver-xorg-input-synaptics
+Recommends: kitty, xserver-xorg-input-synaptics, gnome-keyring, libpam-gnome-keyring, seahorse, libsecret-tools
 Suggests: snapper, timeshift
 Maintainer: hyydra <hyydra@users.noreply.github.com>
 Homepage: https://github.com/hyydra/easylinux

@@ -55,8 +55,8 @@ es_detect() {
     elif [ -f /boot/limine.conf ] || [ -f /boot/limine/limine.conf ]; then ES_BOOTLOADER=limine
     fi
 
-    ES_KERNELS="$(ls /boot/vmlinuz-* /boot/vmlinux-* /boot/Image-* 2>/dev/null | wc -l)"
-    [ "$ES_KERNELS" -gt 0 ] || ES_KERNELS="$(ls /boot/vmlinuz* /boot/vmlinux* 2>/dev/null | grep -v '\.old$' | wc -l)"
+    ES_KERNELS="$(ls /boot/vmlinuz-* /boot/vmlinux-* /boot/Image-* 2>/dev/null | wc -l || true)"
+    [ "$ES_KERNELS" -gt 0 ] || ES_KERNELS="$(ls /boot/vmlinuz* /boot/vmlinux* 2>/dev/null | grep -v '\.old$' | wc -l || true)"
 
     ES_FS_SNAP=none
     if   command -v snapper  >/dev/null 2>&1 && snapper list-configs 2>/dev/null | grep -qw root; then ES_FS_SNAP=snapper

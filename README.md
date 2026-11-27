@@ -36,6 +36,14 @@ A curated collection of automated fixers, watchdogs, and desktop utilities for L
 - `Ctrl+C` / `Ctrl+V` copy and paste everywhere, including the terminal; never Shift+Ctrl.
 - Uses the `kitty` terminal: selection + `Ctrl+C` copies, no selection + `Ctrl+C` still interrupts (also over ssh), like Windows Terminal.
 
+#### Keyboard Backlight Keys (`desktop/kbd-backlight`)
+- XFCE does not bind `XF86KbdBrightnessUp/Down/LightOnOff`, so the backlight (Fn+Space on a ThinkPad) never turned on. Binds them to a small UPower helper (no root): `easylinux --kbd-backlight`.
+- Fn+Space cycles off / dim / bright; `easylinux-kbd-backlight up|down|cycle|on|off|status` works from a terminal too.
+
+#### Password Keyring (`desktop/keyring`)
+- Installs GNOME Keyring, its PAM module, Seahorse and `secret-tool` so browsers, Wi-Fi, git and mail clients can store passwords and the keyring unlocks with the login: `sudo easylinux --keyring` (also part of `--system`).
+- Checks that the display manager's PAM stack loads `pam_gnome_keyring` and tells you if not. The `login` keyring needs the same password as the user account.
+
 ### 2. Hardware Tweaks (`hardware/`)
 
 #### ThinkPad X280 System & Driver Fixes (`hardware/thinkpad-x280`)
@@ -45,7 +53,7 @@ A curated collection of automated fixers, watchdogs, and desktop utilities for L
 
 #### ThinkPad X280 Touchpad Full-Height Split (`hardware/thinkpad-x280`)
 - Fixes `libinput` issue where mid/top clicks on the right side register as left clicks.
-- Configures `synaptics` driver for a 50/50 vertical division across the full height of the pad ($X_{\text{half}} = 968$).
+- Configures `synaptics` driver for a 50/50 vertical division across the full height of the pad (the split is computed from the pad's real coordinate range, e.g. X=3471 on the X280 PS/2 pad).
 - Retains natural two-finger scrolling and tap-to-click.
 - Flip the scroll direction any time: `easylinux --scroll natural|traditional|toggle` (applies immediately, persists for the next login via the X config; undo with `easylinux --rollback`).
 

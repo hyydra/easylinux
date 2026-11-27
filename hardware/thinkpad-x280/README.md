@@ -20,7 +20,7 @@ sudo ./fix-system-errors.sh
 #### 2. Touchpad Full-Height Left/Right Button Split (`setup-touchpad-split.sh`)
 Solves the issue where `libinput` only treats the bottom 1 cm as button areas and registers mid/upper right-side clicks as left clicks.
 - Installs `xserver-xorg-input-synaptics`.
-- Configures a 50/50 vertical division across the full height of the pad ($X_{\text{half}} = 968$): anywhere on the right half clicks as Right Mouse Button.
+- Configures a 50/50 vertical division across the full height of the pad: anywhere on the right half clicks as Right Mouse Button.
 - Retains natural two-finger scrolling and tap-to-click.
 
 Usage:

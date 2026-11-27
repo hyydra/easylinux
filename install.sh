@@ -33,12 +33,16 @@ apply_user() {
         echo "[skip] XFCE not found: panel watchdog and global keyboard layout"
     fi
     step "Windows-style clipboard" bash "$ROOT_DIR/desktop/windows-clipboard/install.sh"
+    if command -v xfconf-query >/dev/null 2>&1; then
+        step "Keyboard backlight keys" bash "$ROOT_DIR/desktop/kbd-backlight/install.sh"
+    fi
     return "$FAILED"
 }
 
 # System settings (root): boot hardening everywhere, hardware fixes only where they apply.
 apply_system() {
     step "Boot hardening (GRUB guard, rollback)" as_root bash "$ROOT_DIR/safety/harden-boot.sh"
+    step "Password keyring" as_root bash "$ROOT_DIR/desktop/keyring/setup-keyring.sh"
     if is_thinkpad_x280; then
         step "ThinkPad X280 fixes" as_root bash "$ROOT_DIR/hardware/thinkpad-x280/fix-system-errors.sh"
         step "ThinkPad X280 touchpad split" as_root bash "$ROOT_DIR/hardware/thinkpad-x280/setup-touchpad-split.sh"
@@ -54,6 +58,10 @@ install_all() {
     bash "$ROOT_DIR/desktop/xfce-global-keyboard/set-global-keyboard.sh"
     echo ""
     bash "$ROOT_DIR/desktop/windows-clipboard/install.sh"
+    echo ""
+    bash "$ROOT_DIR/desktop/kbd-backlight/install.sh"
+    echo ""
+    as_root bash "$ROOT_DIR/desktop/keyring/setup-keyring.sh"
     echo ""
     as_root bash "$ROOT_DIR/hardware/thinkpad-x280/fix-system-errors.sh"
     echo ""
@@ -71,10 +79,12 @@ show_menu() {
     echo "3) Configure ThinkPad X280 Touchpad Left/Right Split (requires sudo)"
     echo "4) Set XFCE Global Keyboard Layout (No per-window language switching)"
     echo "5) Windows-style Ctrl+C / Ctrl+V everywhere (kitty terminal)"
-    echo "6) Install Everything"
-    echo "7) Exit"
+    echo "6) Keyboard backlight keys (Fn+Space)"
+    echo "7) Password keyring (GNOME Keyring, requires sudo)"
+    echo "8) Install Everything"
+    echo "9) Exit"
     echo "========================================="
-    read -rp "Select an option [1-7]: " choice
+    read -rp "Select an option [1-9]: " choice
     case "$choice" in
         1)
             bash "$ROOT_DIR/desktop/xfce-panel-watchdog/install.sh"
@@ -92,9 +102,15 @@ show_menu() {
             bash "$ROOT_DIR/desktop/windows-clipboard/install.sh"
             ;;
         6)
-            install_all
+            bash "$ROOT_DIR/desktop/kbd-backlight/install.sh"
             ;;
         7)
+            as_root bash "$ROOT_DIR/desktop/keyring/setup-keyring.sh"
+            ;;
+        8)
+            install_all
+            ;;
+        9)
             echo "Exiting."
             exit 0
             ;;
@@ -124,6 +140,12 @@ else
         --clipboard)
             bash "$ROOT_DIR/desktop/windows-clipboard/install.sh"
             ;;
+        --kbd-backlight)
+            bash "$ROOT_DIR/desktop/kbd-backlight/install.sh"
+            ;;
+        --keyring)
+            as_root bash "$ROOT_DIR/desktop/keyring/setup-keyring.sh"
+            ;;
         --all)
             install_all
             ;;
@@ -148,7 +170,7 @@ else
             as_root bash "$ROOT_DIR/safety/easylinux-rollback.sh" "$@"
             ;;
         *)
-            echo "Usage: ${PROG##*/} [--user | --system | --boot | --version | --panel | --thinkpad | --touchpad | --keyboard | --clipboard | --scroll natural|traditional|toggle | --all | --rollback [--list|snapshot]]"
+            echo "Usage: ${PROG##*/} [--user | --system | --boot | --version | --panel | --thinkpad | --touchpad | --keyboard | --clipboard | --kbd-backlight | --keyring | --scroll natural|traditional|toggle | --all | --rollback [--list|snapshot]]"
             exit 1
             ;;
     esac

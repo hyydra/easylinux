@@ -55,4 +55,51 @@ assert_contains "$SB/syn.conf" 'Option "HorizScrollDelta" "111"' "traditional al
 EASYLINUX_SCROLL_CONFS="$SB/syn.conf" bash "$S" --persist-only natural >/dev/null 2>&1
 assert_contains "$SB/syn.conf" 'Option "VertScrollDelta" "-111"' "natural = negative delta"
 assert_file "$SB/bk" "scroll change was snapshotted first"
+
+echo "-- safety lib survives set -euo pipefail (ls of missing kernel globs must not abort)"
+bash -c 'set -euo pipefail; source safety/lib.sh; es_begin pf; es_arm' >/dev/null 2>&1
+assert_eq "$?" 0 "es_arm completes under pipefail"
+
+echo "-- touchpad split is computed from the pad's real range"
+S=hardware/thinkpad-x280/setup-touchpad-split.sh
+mkdir -p "$SB/xorg"
+EASYLINUX_NO_PKG=1 EASYLINUX_XORG_DIR="$SB/xorg" EASYLINUX_TOUCHPAD_X_RANGE="1266 5676" bash "$S" >/dev/null 2>&1
+assert_contains "$SB/xorg/70-synaptics.conf" 'Option "SoftButtonAreas" "3471 0 0 0 0 0 0 0"' "PS/2 range 1266..5676 -> split 3471"
+assert_contains "$SB/xorg/99-synaptics-custom.conf" 'Option "SoftButtonAreas" "3471 ' "second config gets the same split"
+EASYLINUX_NO_PKG=1 EASYLINUX_XORG_DIR="$SB/xorg" EASYLINUX_TOUCHPAD_X_RANGE="0 1936" bash "$S" >/dev/null 2>&1
+assert_contains "$SB/xorg/70-synaptics.conf" 'Option "SoftButtonAreas" "968 0 0 0 0 0 0 0"' "SMBus range 0..1936 -> split 968"
+assert_contains "$SB/xorg/70-synaptics.conf" 'Option "VertScrollDelta" "-111"' "scroll settings kept"
+
+echo "-- kbd-backlight helper"
+K=desktop/kbd-backlight/easylinux-kbd-backlight
+cat > "$SB/bin/busctl" <<'STUB'
+#!/bin/sh
+case "$*" in
+    *GetMaxBrightness*) echo "i 2" ;;
+    *GetBrightness*)    echo "i $(cat "$KBD_STATE")" ;;
+    *SetBrightness*)    for last; do :; done; echo "$last" > "$KBD_STATE" ;;
+esac
+STUB
+chmod +x "$SB/bin/busctl"; export KBD_STATE="$SB/kbd"
+kbd() { PATH="$SB/bin:$PATH" sh "$K" "$1"; cat "$KBD_STATE"; }
+echo 0 > "$KBD_STATE"
+assert_eq "$(kbd cycle)" 1 "cycle: off -> dim"
+assert_eq "$(kbd cycle)" 2 "cycle: dim -> bright"
+assert_eq "$(kbd cycle)" 0 "cycle: bright -> off"
+assert_eq "$(kbd up; kbd up)" "1
+2" "up steps through the levels"
+assert_eq "$(kbd up)" 2 "up stops at the maximum"
+assert_eq "$(kbd off)" 0 "off"
+assert_eq "$(kbd down)" 0 "down stops at 0"
+
+echo "-- keyring module"
+S=desktop/keyring/setup-keyring.sh
+mkdir -p "$SB/pam"; printf '@include common-auth\n@include common-session\n' > "$SB/pam/lightdm"
+printf 'auth optional pam_gnome_keyring.so\n' > "$SB/pam/common-auth"; : > "$SB/pam/common-session"
+EASYLINUX_NO_PKG=1 EASYLINUX_PAM_DIR="$SB/pam" bash "$S" > "$SB/out" 2>&1
+assert_contains "$SB/out" "unlocks with your login" "PAM stack with pam_gnome_keyring is recognised"
+: > "$SB/pam/common-auth"
+EASYLINUX_NO_PKG=1 EASYLINUX_PAM_DIR="$SB/pam" bash "$S" > "$SB/out" 2>&1
+assert_contains "$SB/out" "does not load pam_gnome_keyring" "missing PAM module is reported"
+
 finish
