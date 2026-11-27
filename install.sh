@@ -43,6 +43,7 @@ apply_user() {
 apply_system() {
     step "Boot hardening (GRUB guard, rollback)" as_root bash "$ROOT_DIR/safety/harden-boot.sh"
     step "Password keyring" as_root bash "$ROOT_DIR/desktop/keyring/setup-keyring.sh"
+    step "Keyboard backlight at boot and wake-up" as_root bash "$ROOT_DIR/desktop/kbd-backlight/setup-boot.sh"
     if is_thinkpad_x280; then
         step "ThinkPad X280 fixes" as_root bash "$ROOT_DIR/hardware/thinkpad-x280/fix-system-errors.sh"
         step "ThinkPad X280 touchpad split" as_root bash "$ROOT_DIR/hardware/thinkpad-x280/setup-touchpad-split.sh"
@@ -62,6 +63,8 @@ install_all() {
     bash "$ROOT_DIR/desktop/kbd-backlight/install.sh"
     echo ""
     as_root bash "$ROOT_DIR/desktop/keyring/setup-keyring.sh"
+    echo ""
+    as_root bash "$ROOT_DIR/desktop/kbd-backlight/setup-boot.sh"
     echo ""
     as_root bash "$ROOT_DIR/hardware/thinkpad-x280/fix-system-errors.sh"
     echo ""
@@ -143,6 +146,9 @@ else
         --kbd-backlight)
             bash "$ROOT_DIR/desktop/kbd-backlight/install.sh"
             ;;
+        --kbd-backlight-boot)
+            as_root bash "$ROOT_DIR/desktop/kbd-backlight/setup-boot.sh"
+            ;;
         --keyring)
             as_root bash "$ROOT_DIR/desktop/keyring/setup-keyring.sh"
             ;;
@@ -170,7 +176,7 @@ else
             as_root bash "$ROOT_DIR/safety/easylinux-rollback.sh" "$@"
             ;;
         *)
-            echo "Usage: ${PROG##*/} [--user | --system | --boot | --version | --panel | --thinkpad | --touchpad | --keyboard | --clipboard | --kbd-backlight | --keyring | --scroll natural|traditional|toggle | --all | --rollback [--list|snapshot]]"
+            echo "Usage: ${PROG##*/} [--user | --system | --boot | --version | --panel | --thinkpad | --touchpad | --keyboard | --clipboard | --kbd-backlight | --kbd-backlight-boot | --keyring | --scroll natural|traditional|toggle | --all | --rollback [--list|snapshot]]"
             exit 1
             ;;
     esac

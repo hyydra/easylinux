@@ -92,6 +92,18 @@ assert_eq "$(kbd up)" 2 "up stops at the maximum"
 assert_eq "$(kbd off)" 0 "off"
 assert_eq "$(kbd down)" 0 "down stops at 0"
 
+echo "-- kbd-backlight at boot and wake-up"
+mkdir -p "$SB/etcb" "$SB/sbinb"
+EASYLINUX_ETC="$SB/etcb" EASYLINUX_SBIN="$SB/sbinb" bash desktop/kbd-backlight/setup-boot.sh >/dev/null 2>&1
+assert_file "$SB/sbinb/easylinux-kbd-backlight-max" "helper installed"
+assert_contains "$SB/etcb/udev/rules.d/90-easylinux-kbd-backlight.rules" 'KERNEL=="*kbd_backlight"' "udev rule matches the backlight LED"
+assert_contains "$SB/etcb/systemd/system-sleep/easylinux-kbd-backlight" "easylinux-kbd-backlight-max" "sleep hook calls the helper"
+mkdir -p "$SB/led"; echo 2 > "$SB/led/max_brightness"; echo 0 > "$SB/led/brightness"
+sed "s|/sys/class/leds/\*kbd_backlight|$SB/led|" "$SB/sbinb/easylinux-kbd-backlight-max" > "$SB/helper-test"
+sh "$SB/helper-test"; assert_eq "$(cat "$SB/led/brightness")" 2 "helper sets the LED to max_brightness"
+sh "$SB/etcb/systemd/system-sleep/easylinux-kbd-backlight" pre; sh "$SB/etcb/systemd/system-sleep/easylinux-kbd-backlight" post
+assert_eq "$?" 0 "sleep hook exits cleanly"
+
 echo "-- keyring module"
 S=desktop/keyring/setup-keyring.sh
 mkdir -p "$SB/pam"; printf '@include common-auth\n@include common-session\n' > "$SB/pam/lightdm"
