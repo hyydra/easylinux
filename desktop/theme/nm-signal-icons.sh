@@ -7,7 +7,7 @@
 #   nm-signal-icons.sh --undo    remove them
 set -euo pipefail
 
-THEME="${EASYLINUX_SIGNAL_THEME:-elementary}"
+THEME="${EASYLINUX_SIGNAL_THEME:-easylinux}"
 ICONS="${EASYLINUX_ICONS_DIR:-/usr/share/icons}"
 OUT="${XDG_DATA_HOME:-$HOME/.local/share}/icons/hicolor"
 SIZES="16 22 24 32 48"
@@ -28,8 +28,10 @@ if [ "${1:-}" = --undo ]; then
 fi
 
 echo "==> Wi-Fi signal icons"
+USER_THEME="${XDG_DATA_HOME:-$HOME/.local/share}/icons/$THEME"
+[ -d "$USER_THEME" ] || USER_THEME="$ICONS/$THEME"
 src() {   # path of the theme's icon for a wireless level
-    find "$ICONS/$THEME" -name "network-wireless-signal-$1.svg" ! -path '*symbolic*' 2>/dev/null | sort -t/ -k6 -n | tail -1
+    find "$USER_THEME" -name "network-wireless-signal-$1.svg" ! -path '*symbolic*' 2>/dev/null | sort -t/ -k6 -n | tail -1
 }
 if [ -z "$(src good)" ]; then
     echo "[skip] icon theme '$THEME' has no network-wireless-signal icons"
@@ -37,7 +39,7 @@ if [ -z "$(src good)" ]; then
 fi
 command -v python3 >/dev/null 2>&1 || { echo "[skip] python3 not found"; exit 0; }
 
-python3 -I - "$OUT" "$SIZES" "$MAP" "$ICONS/$THEME" <<'PY'
+python3 -I - "$OUT" "$SIZES" "$MAP" "$USER_THEME" <<'PY'
 import os, subprocess, sys
 import gi
 gi.require_version('GdkPixbuf', '2.0')
