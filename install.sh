@@ -51,6 +51,7 @@ apply_user() {
     step "Windows-style clipboard" bash "$ROOT_DIR/desktop/windows-clipboard/install.sh"
     if command -v xfconf-query >/dev/null 2>&1; then
         step "Yaru theme" bash "$ROOT_DIR/desktop/theme/install.sh"
+        step "Panel look" bash "$ROOT_DIR/desktop/theme/panel-look.sh"
     fi
     if is_thinkpad_x280; then
         step "ThinkPad X280 Thunderbolt firmware check" bash "$ROOT_DIR/hardware/thinkpad-x280/check-thunderbolt-firmware.sh" --notify
@@ -89,6 +90,7 @@ install_all() {
     bash "$ROOT_DIR/desktop/kbd-backlight/install.sh"
     echo ""
     bash "$ROOT_DIR/desktop/theme/install.sh"
+    bash "$ROOT_DIR/desktop/theme/panel-look.sh"
     echo ""
     bash "$ROOT_DIR/desktop/suspend-keys/install.sh"
     echo ""
@@ -180,6 +182,7 @@ else
             ;;
         --theme)
             bash "$ROOT_DIR/desktop/theme/install.sh"
+            bash "$ROOT_DIR/desktop/theme/panel-look.sh"
             ;;
         --tbt-check)
             bash "$ROOT_DIR/hardware/thinkpad-x280/check-thunderbolt-firmware.sh"

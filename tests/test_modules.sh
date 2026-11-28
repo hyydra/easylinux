@@ -280,6 +280,42 @@ assert_eq "$(paste -sd' ' "$XP/_panels_panel-1_plugin-ids")" "1 6 18 8" "undo pu
 assert_no_file "$XP/_plugins_plugin-19" "undo removes the genmon plugin"
 unset XP
 
+echo "-- panel look"
+mkdir -p "$SB/pl/xp" "$SB/pl/conf/xfce4/panel" "$SB/pl/weather/simplistic" "$SB/pl/icons/elementary/status/32" "$SB/pl/data"
+cat > "$SB/pl/xfconf-query" <<'STUB'
+#!/bin/sh
+p=""; v=""; mode=get
+while [ $# -gt 0 ]; do case "$1" in -p) p="$2"; shift ;; -s) v="$2"; mode=set; shift ;; -l) mode=list ;; -r) mode=rm ;; esac; shift; done
+f="$XPL/$(echo "$p" | tr / _)"
+case $mode in
+    list) for x in "$XPL"/*; do basename "$x" | tr _ /; done ;;
+    get)  [ -f "$f" ] && cat "$f" || exit 1 ;;
+    set)  echo "$v" > "$f" ;;
+    rm)   rm -f "$f" ;;
+esac
+STUB
+chmod +x "$SB/pl/xfconf-query"; export XPL="$SB/pl/xp"
+echo 36 > "$XPL/_panels_panel-1_size"; echo 0 > "$XPL/_panels_panel-1_icon-size"; echo false > "$XPL/_panels_panel-1_position-locked"
+echo tasklist > "$XPL/_plugins_plugin-2"; echo systray > "$XPL/_plugins_plugin-6"; echo battery > "$XPL/_plugins_plugin-12"; echo weather > "$XPL/_plugins_plugin-17"
+echo /usr/share/xfce4/weather/icons/liquid > "$XPL/_plugins_plugin-17_theme-dir"
+printf 'display_icon=false\ndisplay_bar=true\ndisplay_percentage=true\n' > "$SB/pl/conf/xfce4/panel/battery-12.rc"
+pl() { ES_TEST=1 EASYLINUX_ICONS_DIR="$SB/pl/icons" EASYLINUX_WEATHER_ICONS="$SB/pl/weather" XDG_CONFIG_HOME="$SB/pl/conf" XDG_STATE_HOME="$SB/pl/state" XDG_DATA_HOME="$SB/pl/data" HOME="$SB/pl/home" PATH="$SB/pl:$PATH" bash desktop/theme/panel-look.sh "$@" > "$SB/out" 2>&1; }
+pl; pl
+assert_eq "$(cat "$XPL/_panels_panel-1_icon-size")" 28 "menu/task icons 28 px"
+assert_eq "$(cat "$XPL/_panels_panel-1_position-locked")" true "position locked (no drag handles)"
+assert_eq "$(cat "$XPL/_plugins_plugin-6_icon-size")" 18 "tray icons smaller"
+assert_eq "$(cat "$XPL/_plugins_plugin-2_show-handle")" false "task-list handle off"
+assert_eq "$(cat "$XPL/_plugins_plugin-17_theme-dir")" "$SB/pl/weather/simplistic" "flat weather icons"
+assert_contains "$SB/pl/conf/xfce4/panel/battery-12.rc" "display_icon=true" "battery shows an icon"
+assert_contains "$SB/pl/conf/xfce4/panel/battery-12.rc" "display_bar=false" "battery bar off"
+assert_contains "$SB/pl/state/easylinux/panel-look-backup" "/usr/share/xfce4/weather/icons/liquid" "original weather theme saved (not overwritten by the second run)"
+pl --undo
+assert_eq "$(cat "$XPL/_panels_panel-1_icon-size")" 0 "undo restores the icon size"
+assert_eq "$(cat "$XPL/_plugins_plugin-17_theme-dir")" /usr/share/xfce4/weather/icons/liquid "undo restores the weather icons"
+assert_contains "$SB/pl/conf/xfce4/panel/battery-12.rc" "display_bar=true" "undo restores the battery plugin settings"
+assert_no_file "$XPL/_plugins_plugin-6_icon-size" "undo removes values that were not set before"
+unset XPL
+
 echo "-- keyring module"
 S=desktop/keyring/setup-keyring.sh
 mkdir -p "$SB/pam"; printf '@include common-auth\n@include common-session\n' > "$SB/pam/lightdm"
