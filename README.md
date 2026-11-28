@@ -134,7 +134,7 @@ Other distros: `sudo make install` (generic, `PREFIX=/usr/local` works too) or `
 
 ```bash
 git clone https://github.com/hyydra/easyset-linux.git
-cd easylinux
+cd easyset-linux
 chmod +x install.sh
 ./install.sh
 ```
