@@ -389,6 +389,15 @@ assert_contains "$SB/ic" "easyset/index.theme" "it has an index.theme"
 assert_contains "$SB/ic" "easyset/LICENSE" "it ships the CC0 license"
 assert_contains "$SB/ic" "easyset/scalable/user-home.svg" "and the icons"
 
+echo "-- doctor (read-only hardware report)"
+mkdir -p "$SB/dmid"; echo "LENOVO" > "$SB/dmid/sys_vendor"; echo "20KES1F400" > "$SB/dmid/product_name"; echo "ThinkPad X280" > "$SB/dmid/product_version"
+EASYLINUX_DMI_DIR="$SB/dmid" bash install.sh --doctor > "$SB/out" 2>&1; assert_eq "$?" 0 "doctor runs"
+assert_contains "$SB/out" "ThinkPad X280 (touchpad" "recognises the X280 profile"
+echo "Apple Inc." > "$SB/dmid/sys_vendor"; echo "MacBookPro" > "$SB/dmid/product_name"; : > "$SB/dmid/product_version"
+EASYLINUX_DMI_DIR="$SB/dmid" bash install.sh --doctor > "$SB/out" 2>&1
+assert_contains "$SB/out" "Hardware profile: Apple" "recognises a Mac"
+rm -rf "$SB/dmid"; EASYLINUX_DMI_DIR="$SB/dmid" bash install.sh --doctor > "$SB/out" 2>&1; assert_eq "$?" 0 "unknown hardware does not break it"
+
 echo "-- keyring module"
 S=desktop/keyring/setup-keyring.sh
 mkdir -p "$SB/pam"; printf '@include common-auth\n@include common-session\n' > "$SB/pam/lightdm"

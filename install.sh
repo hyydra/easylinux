@@ -231,6 +231,9 @@ else
             fi
             exec bash "$ROOT_DIR/$rel" "$@"
             ;;
+        --doctor)
+            bash "$ROOT_DIR/hardware/generic/doctor.sh"
+            ;;
         --version)
             cat "$ROOT_DIR/VERSION" 2>/dev/null || echo "unknown"
             ;;
@@ -239,7 +242,7 @@ else
             as_root bash "$ROOT_DIR/safety/easylinux-rollback.sh" "$@"
             ;;
         *)
-            echo "Usage: ${PROG##*/} [--user | --system | --boot | --version | --panel | --thinkpad | --touchpad | --keyboard | --clipboard | --kbd-backlight | --kbd-backlight-boot | --suspend-keys | --keyring | --theme | --tbt-check | --tbt-update | --scroll natural|traditional|toggle | --all | --rollback [--list|snapshot]]"
+            echo "Usage: ${PROG##*/} [--user | --system | --boot | --version | --panel | --thinkpad | --touchpad | --keyboard | --clipboard | --kbd-backlight | --kbd-backlight-boot | --suspend-keys | --keyring | --theme | --tbt-check | --doctor | --tbt-update | --scroll natural|traditional|toggle | --all | --rollback [--list|snapshot]]"
             exit 1
             ;;
     esac
