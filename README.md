@@ -123,7 +123,7 @@ In a graphical session the installed package asks for the administrator password
 
 ```bash
 make deb                                   # builds dist/easylinux_<version>_all.deb
-sudo apt install ./dist/easyset_0.3.0_all.deb
+sudo apt install ./dist/easyset_0.4.0_all.deb
 ```
 Installing the package applies the settings, with the safety net armed first:
 - **At install time (root):** GRUB hardening + rollback tool + boot guard on every machine, and the ThinkPad X280 fixes only on an X280 (`easyset --system`).
