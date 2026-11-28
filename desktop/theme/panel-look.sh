@@ -2,6 +2,7 @@
 # A tidier XFCE panel to go with the Yaru/elementary theme (per user, no root):
 #   - roomy bar: 48 px high, 32 px icons for the menu button and task list, 22 px status tray icons,
 #     and 4x8 px padding on the panel buttons (bigger click targets)
+#   - a larger clock: date (11 pt) above the time (15 pt bold)
 #   - the menu button shows its icon plus the word "Start": a wide target that is easy to hit
 #   - bar position locked and no task-list handle: no dotted drag-handle marks at the ends
 #   - weather plugin: flat "simplistic" icon set instead of the glossy "liquid" one
@@ -59,6 +60,14 @@ writes() {
         printf '/plugins/plugin-%s/button-title\tstring\tStart\n' "$id"
         printf '/plugins/plugin-%s/show-button-icon\tbool\ttrue\n' "$id"
         printf '/plugins/plugin-%s/button-icon\tstring\teasylinux-start\n' "$id"
+    done
+    for id in $(plugin_ids clock); do
+        printf '/plugins/plugin-%s/mode\tuint\t2\n' "$id"
+        printf '/plugins/plugin-%s/digital-layout\tuint\t0\n' "$id"
+        printf '/plugins/plugin-%s/digital-date-format\tstring\t%%Y-%%m-%%d\n' "$id"
+        printf '/plugins/plugin-%s/digital-time-format\tstring\t%%H:%%M\n' "$id"
+        printf '/plugins/plugin-%s/digital-date-font\tstring\tNoto Sans 11\n' "$id"
+        printf '/plugins/plugin-%s/digital-time-font\tstring\tNoto Sans Bold 15\n' "$id"
     done
     for id in $(plugin_ids systray); do
         printf '/plugins/plugin-%s/icon-size\tuint\t%s\n' "$id" "$TRAY_ICON_SIZE"
