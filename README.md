@@ -32,6 +32,12 @@ Take a fresh Linux install and make it behave the way you expect, in one command
 - `Ctrl+C` / `Ctrl+V` copy and paste everywhere, including the terminal; never Shift+Ctrl.
 - Uses the `kitty` terminal: selection + `Ctrl+C` copies, no selection + `Ctrl+C` still interrupts (also over ssh), like Windows Terminal.
 
+#### Yaru Theme (`desktop/theme`)
+- One consistent look instead of Xubuntu's mix of Greybird (flat grey GTK) and the plain Default window frame, which made dialogs look unpolished: Yaru for GTK, window frames (sized by screen DPI) and icons, Noto Sans as the UI font: `easylinux --theme` (per user, no root; part of `--user`).
+- **Light/dark cycle:** light from 07:00, dark from 19:00 (a `systemd --user` timer checks every 10 minutes and at login). Also sets the freedesktop colour-scheme hint, so GTK4, Chrome and Electron apps follow. Change the times in `~/.config/easylinux/theme.conf`.
+- `easylinux-theme light|dark|toggle` picks one by hand and keeps it; `easylinux-theme auto` goes back to the schedule.
+- The previous values are saved once; `desktop/theme/uninstall.sh` restores them and removes the timer.
+
 #### Keyboard Backlight Keys (`desktop/kbd-backlight`)
 - XFCE does not bind `XF86KbdBrightnessUp/Down/LightOnOff`, so the backlight (Fn+Space on a ThinkPad) never turned on. Binds them to a small UPower helper (no root): `easylinux --kbd-backlight`.
 - Full brightness after power-on and after every wake-up (the firmware leaves it off): `sudo easylinux --kbd-backlight-boot` (systemd services for boot and resume, as `systemd-backlight` restores the saved "off" state early at boot; also part of `--system`; skipped on machines without a keyboard backlight).

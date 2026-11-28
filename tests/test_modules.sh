@@ -136,6 +136,54 @@ assert_contains "$SB/out" "Not a ThinkPad X280" "other laptops are skipped"
 rm -f "$SB/tbt/nvm_version"; tbt dmi-x280
 assert_contains "$SB/out" "Thunderbolt controller not visible" "missing controller is skipped, not an error"
 
+echo "-- Yaru theme with light/dark cycle"
+mkdir -p "$SB/themes/Yaru/gtk-3.0" "$SB/themes/Yaru/xfwm4" "$SB/themes/Yaru-hdpi/xfwm4" "$SB/themes/Yaru-dark/xfwm4" "$SB/themes/Yaru-dark-hdpi/xfwm4" \
+         "$SB/icons/Yaru" "$SB/icons/Yaru-dark" "$SB/xf" "$SB/home"
+cat > "$SB/bin/xfconf-query" <<'STUB'
+#!/bin/sh
+# tiny xfconf: one file per channel+property
+c=""; p=""; v=""; mode=get
+while [ $# -gt 0 ]; do case "$1" in -c) c="$2"; shift ;; -p) p="$2"; shift ;; -s) v="$2"; mode=set; shift ;; -r) mode=rm ;; esac; shift; done
+f="$XF/$c$(echo "$p" | tr / _)"
+case $mode in get) [ -f "$f" ] && cat "$f" || exit 1 ;; set) echo "$v" > "$f" ;; rm) rm -f "$f" ;; esac
+STUB
+printf '#!/bin/sh\n[ "$1" = set ] && echo "$4" > "$XF/gs_$3"\nexit 0\n' > "$SB/bin/gsettings"
+chmod +x "$SB/bin/xfconf-query" "$SB/bin/gsettings"; export XF="$SB/xf"
+echo Greybird > "$XF/xsettings_Net_ThemeName"; echo Default-xhdpi > "$XF/xfwm4_general_theme"; echo 144 > "$XF/xsettings_Xft_DPI"
+th() { EASYLINUX_THEMES_DIR="$SB/themes" EASYLINUX_ICONS_DIR="$SB/icons" HOME="$SB/home" XDG_STATE_HOME="$SB/state" XDG_CONFIG_HOME="$SB/cfgt" PATH="$SB/bin:$PATH" "$@" >/dev/null 2>&1; }
+TB="$SB/home/.local/bin/easylinux-theme"
+EASYLINUX_NOW=12:00 th bash desktop/theme/install.sh; EASYLINUX_NOW=12:00 th bash desktop/theme/install.sh
+assert_eq "$(cat "$XF/xsettings_Net_ThemeName")" Yaru "noon: light Yaru"
+assert_eq "$(cat "$XF/xfwm4_general_theme")" Yaru-hdpi "window frame follows the DPI (144 -> hdpi)"
+assert_eq "$(cat "$XF/gs_color-scheme")" default "noon: apps told light"
+assert_contains "$SB/cfgt/systemd/user/easylinux-theme.timer" "OnCalendar=*:0/10" "timer checks the schedule every 10 minutes"
+assert_contains "$SB/state/easylinux/theme-backup" "Greybird" "original theme saved (not overwritten by the second run)"
+EASYLINUX_NOW=21:30 th "$TB" --timer
+assert_eq "$(cat "$XF/xsettings_Net_ThemeName")" Yaru-dark "21:30: timer switches to dark"
+assert_eq "$(cat "$XF/xsettings_Net_IconThemeName")" Yaru-dark "dark icons"
+assert_eq "$(cat "$XF/xfwm4_general_theme")" Yaru-dark-hdpi "dark window frame at hdpi"
+assert_eq "$(cat "$XF/gs_color-scheme")" prefer-dark "apps told dark"
+EASYLINUX_NOW=06:59 th "$TB" --timer
+assert_eq "$(cat "$XF/xsettings_Net_ThemeName")" Yaru-dark "06:59: still dark"
+EASYLINUX_NOW=07:00 th "$TB" --timer
+assert_eq "$(cat "$XF/xsettings_Net_ThemeName")" Yaru "07:00: light again"
+th "$TB" toggle
+assert_eq "$(cat "$XF/xsettings_Net_ThemeName")" Yaru-dark "toggle flips to dark"
+EASYLINUX_NOW=12:00 th "$TB" --timer
+assert_eq "$(cat "$XF/xsettings_Net_ThemeName")" Yaru-dark "after a manual choice the timer leaves it alone"
+EASYLINUX_NOW=12:00 th "$TB" auto
+assert_eq "$(cat "$XF/xsettings_Net_ThemeName")" Yaru "auto returns to the schedule"
+th bash desktop/theme/uninstall.sh
+assert_eq "$(cat "$XF/xsettings_Net_ThemeName")" Greybird "uninstall restores the GTK theme"
+assert_eq "$(cat "$XF/xfwm4_general_theme")" Default-xhdpi "uninstall restores the window frame"
+assert_no_file "$XF/xsettings_Net_IconThemeName" "a value that was unset before is unset again"
+assert_no_file "$SB/cfgt/systemd/user/easylinux-theme.timer" "uninstall removes the timer"
+rm -rf "$SB/themes/Yaru"; th bash desktop/theme/install.sh; rc=$?
+EASYLINUX_THEMES_DIR="$SB/themes" HOME="$SB/home" XDG_STATE_HOME="$SB/state" PATH="$SB/bin:$PATH" bash desktop/theme/install.sh > "$SB/out" 2>&1
+assert_eq "$rc" 1 "missing Yaru theme is reported as a failure"
+assert_contains "$SB/out" "apt install yaru-theme-gtk" "and says how to install it"
+unset XF
+
 echo "-- keyring module"
 S=desktop/keyring/setup-keyring.sh
 mkdir -p "$SB/pam"; printf '@include common-auth\n@include common-session\n' > "$SB/pam/lightdm"

@@ -1,0 +1,55 @@
+#!/bin/sh
+# easylinux theme: Yaru light/dark for GTK, window frames, icons, plus the freedesktop
+# colour-scheme hint that GTK4/libadwaita, Chrome and Electron apps follow.
+#   light | dark      switch now and stay there (automatic switching off)
+#   toggle            flip light <-> dark and stay there
+#   auto              switch by time of day (LIGHT_AT / DARK_AT in the config) from now on
+#   --timer           what the systemd timer runs: apply the schedule only when MODE=auto
+#   status            print mode and current look
+CONF="${XDG_CONFIG_HOME:-$HOME/.config}/easylinux/theme.conf"
+THEMES="${EASYLINUX_THEMES_DIR:-/usr/share/themes}"
+ICONS="${EASYLINUX_ICONS_DIR:-/usr/share/icons}"
+
+MODE=auto; LIGHT_AT=07:00; DARK_AT=19:00
+[ -r "$CONF" ] && . "$CONF"
+
+save_conf() {
+    mkdir -p "$(dirname "$CONF")"
+    printf '# easylinux theme: MODE=auto|light|dark; auto switches at these times (HH:MM)\nMODE=%s\nLIGHT_AT=%s\nDARK_AT=%s\n' \
+        "$MODE" "$LIGHT_AT" "$DARK_AT" > "$CONF"
+}
+minutes() { h=${1%%:*}; m=${1##*:}; echo $(( ${h#0} * 60 + ${m#0} )); }
+current() { case "$(xfconf-query -c xsettings -p /Net/ThemeName 2>/dev/null)" in *-dark) echo dark ;; *) echo light ;; esac; }
+scheduled() {
+    now="${EASYLINUX_NOW:-$(date +%H:%M)}"
+    n=$(minutes "$now"); l=$(minutes "$LIGHT_AT"); d=$(minutes "$DARK_AT")
+    if [ "$n" -ge "$l" ] && [ "$n" -lt "$d" ]; then echo light; else echo dark; fi
+}
+
+apply() {   # $1 = light|dark
+    suffix=""; [ "$1" = dark ] && suffix="-dark"
+    dpi="$(xfconf-query -c xsettings -p /Xft/DPI 2>/dev/null)"
+    case "$dpi" in ''|*[!0-9]*) dpi=96 ;; esac
+    frame="Yaru$suffix"
+    if   [ "$dpi" -ge 192 ] && [ -d "$THEMES/Yaru$suffix-xhdpi/xfwm4" ]; then frame="Yaru$suffix-xhdpi"
+    elif [ "$dpi" -ge 144 ] && [ -d "$THEMES/Yaru$suffix-hdpi/xfwm4" ];  then frame="Yaru$suffix-hdpi"
+    fi
+    [ -d "$THEMES/$frame/xfwm4" ] || frame="Yaru"
+    xfconf-query -c xsettings -p /Net/ThemeName -n -t string -s "Yaru$suffix"
+    xfconf-query -c xfwm4 -p /general/theme -n -t string -s "$frame"
+    [ -d "$ICONS/Yaru$suffix" ] && xfconf-query -c xsettings -p /Net/IconThemeName -n -t string -s "Yaru$suffix"
+    if command -v gsettings >/dev/null 2>&1; then
+        scheme=default; [ "$1" = dark ] && scheme=prefer-dark
+        gsettings set org.gnome.desktop.interface color-scheme "$scheme" 2>/dev/null || true
+        gsettings set org.gnome.desktop.interface gtk-theme "Yaru$suffix" 2>/dev/null || true
+    fi
+}
+
+case "${1:-status}" in
+    light|dark) MODE="$1"; save_conf; apply "$1"; echo "theme: $1 (automatic switching off; 'easylinux-theme auto' turns it back on)" ;;
+    toggle)     [ "$(current)" = dark ] && MODE=light || MODE=dark; save_conf; apply "$MODE"; echo "theme: $MODE" ;;
+    auto)       MODE=auto; save_conf; s=$(scheduled); apply "$s"; echo "theme: automatic ($LIGHT_AT light, $DARK_AT dark), now $s" ;;
+    --timer)    [ "$MODE" = auto ] || exit 0; s=$(scheduled); [ "$(current)" = "$s" ] || apply "$s" ;;
+    status)     echo "mode=$MODE light_at=$LIGHT_AT dark_at=$DARK_AT now=$(current)" ;;
+    *)          echo "Usage: ${0##*/} light|dark|toggle|auto|status" >&2; exit 1 ;;
+esac

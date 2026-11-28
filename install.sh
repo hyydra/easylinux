@@ -33,6 +33,9 @@ apply_user() {
         echo "[skip] XFCE not found: panel watchdog and global keyboard layout"
     fi
     step "Windows-style clipboard" bash "$ROOT_DIR/desktop/windows-clipboard/install.sh"
+    if command -v xfconf-query >/dev/null 2>&1; then
+        step "Yaru theme" bash "$ROOT_DIR/desktop/theme/install.sh"
+    fi
     if is_thinkpad_x280; then
         step "ThinkPad X280 Thunderbolt firmware check" bash "$ROOT_DIR/hardware/thinkpad-x280/check-thunderbolt-firmware.sh" --notify
     fi
@@ -67,6 +70,8 @@ install_all() {
     bash "$ROOT_DIR/desktop/windows-clipboard/install.sh"
     echo ""
     bash "$ROOT_DIR/desktop/kbd-backlight/install.sh"
+    echo ""
+    bash "$ROOT_DIR/desktop/theme/install.sh"
     echo ""
     bash "$ROOT_DIR/desktop/suspend-keys/install.sh"
     echo ""
@@ -155,6 +160,9 @@ else
         --clipboard)
             bash "$ROOT_DIR/desktop/windows-clipboard/install.sh"
             ;;
+        --theme)
+            bash "$ROOT_DIR/desktop/theme/install.sh"
+            ;;
         --tbt-check)
             bash "$ROOT_DIR/hardware/thinkpad-x280/check-thunderbolt-firmware.sh"
             ;;
@@ -198,7 +206,7 @@ else
             as_root bash "$ROOT_DIR/safety/easylinux-rollback.sh" "$@"
             ;;
         *)
-            echo "Usage: ${PROG##*/} [--user | --system | --boot | --version | --panel | --thinkpad | --touchpad | --keyboard | --clipboard | --kbd-backlight | --kbd-backlight-boot | --suspend-keys | --keyring | --tbt-check | --tbt-update | --scroll natural|traditional|toggle | --all | --rollback [--list|snapshot]]"
+            echo "Usage: ${PROG##*/} [--user | --system | --boot | --version | --panel | --thinkpad | --touchpad | --keyboard | --clipboard | --kbd-backlight | --kbd-backlight-boot | --suspend-keys | --keyring | --theme | --tbt-check | --tbt-update | --scroll natural|traditional|toggle | --all | --rollback [--list|snapshot]]"
             exit 1
             ;;
     esac
