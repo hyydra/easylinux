@@ -98,7 +98,7 @@ The tests run fully sandboxed (temp dirs, stubbed `sudo`, fake `grub-mkconfig`);
 
 ```bash
 make deb                                   # builds dist/easylinux_<version>_all.deb
-sudo apt install ./dist/easylinux_0.1.0_all.deb
+sudo apt install ./dist/easylinux_0.2.0_all.deb
 ```
 Installing the package applies the settings, with the safety net armed first:
 - **At install time (root):** GRUB hardening + rollback tool + boot guard on every machine, and the ThinkPad X280 fixes only on an X280 (`easylinux --system`).
