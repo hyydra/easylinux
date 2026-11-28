@@ -12,5 +12,5 @@ while IFS= read -r f; do
     case "$f" in tests/lib.sh|safety/lib.sh) ;; *)
         if [ -x "$f" ]; then ok "executable $f"; else bad "executable $f"; fi ;;
     esac
-done < <(git ls-files '*.sh' packaging/easylinux packaging/easylinux-user-setup packaging/debian/postinst safety/easylinux-guard.openrc)
+done < <(git ls-files '*.sh' packaging/easyset packaging/easyset-user-setup packaging/debian/postinst safety/easylinux-guard.openrc)
 finish

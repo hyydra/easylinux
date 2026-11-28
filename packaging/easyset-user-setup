@@ -1,9 +1,9 @@
 #!/bin/sh
-# Applies the per-user easylinux settings once per user and version (XDG autostart).
-# Disable with AUTO_USER=0 in /etc/easylinux/easylinux.conf.
-dir="$(dirname "$(readlink -f "$0")")/../share/easylinux"
+# Applies the per-user easyset settings once per user and version (XDG autostart).
+# Disable with AUTO_USER=0 in /etc/easyset/easyset.conf.
+dir="$(dirname "$(readlink -f "$0")")/../share/easyset"
 AUTO_USER=1
-[ -r /etc/easylinux/easylinux.conf ] && . /etc/easylinux/easylinux.conf
+[ -r /etc/easyset/easyset.conf ] && . /etc/easyset/easyset.conf
 [ "$AUTO_USER" = 1 ] || exit 0
 
 state="${XDG_STATE_HOME:-$HOME/.local/state}/easylinux"
@@ -11,7 +11,7 @@ version="$(cat "$dir/VERSION" 2>/dev/null || echo unknown)"
 [ "$(cat "$state/applied" 2>/dev/null)" = "$version" ] && exit 0
 
 sleep "${EASYLINUX_DELAY:-15}"   # let the panel and session finish starting
-if EASYLINUX_NO_PKG=1 "${EASYLINUX_BIN:-$(dirname "$(readlink -f "$0")")/easylinux}" --user; then
+if EASYLINUX_NO_PKG=1 "${EASYLINUX_BIN:-$(dirname "$(readlink -f "$0")")/easyset}" --user; then
     mkdir -p "$state"
     echo "$version" > "$state/applied"
 fi

@@ -7,14 +7,14 @@ PROG="${EASYLINUX_PROG:-$0}"
 # Run a command as root. In a graphical session with the package installed this shows the polkit
 # administrator prompt (like Windows UAC) instead of asking for sudo in a terminal; the polkit
 # action only allows this command to run the root-owned scripts of its own install directory.
-POLKIT_POLICY="${EASYLINUX_POLKIT_POLICY:-/usr/share/polkit-1/actions/org.easylinux.policy}"
+POLKIT_POLICY="${EASYLINUX_POLKIT_POLICY:-/usr/share/polkit-1/actions/org.easyset.policy}"
 as_root() {
     if [ "$(id -u)" -eq 0 ]; then "$@"; return; fi
     if [ -z "${EASYLINUX_NO_POLKIT:-}" ] && [ -n "${DISPLAY:-}${WAYLAND_DISPLAY:-}" ] \
        && command -v pkexec >/dev/null 2>&1 && [ -f "$POLKIT_POLICY" ] \
        && [ "$1" = bash ] && [ "$(stat -c %U "$ROOT_DIR")" = root ] && [ ! -w "$ROOT_DIR" ]; then
         local script="${2#"$ROOT_DIR"/}" exe
-        exe="$(grep -o '[^>]*/bin/easylinux<' "$POLKIT_POLICY" | head -1)"; exe="${exe%<}"
+        exe="$(grep -o '[^>]*/bin/easyset<' "$POLKIT_POLICY" | head -1)"; exe="${exe%<}"
         if [ "$script" != "$2" ] && [ -x "$exe" ]; then
             pkexec "$exe" --as-root "$script" "${@:3}"
             return

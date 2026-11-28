@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=easyset user settings
+Comment=Applies the easyset per-user settings once after login
+Exec=@PREFIX@/bin/easyset-user-setup
+Terminal=false
+NoDisplay=true
+X-GNOME-Autostart-enabled=true

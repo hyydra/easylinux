@@ -41,7 +41,7 @@ cat /sys/class/power_supply/AC/online              # 0 although the charger is p
 ls /sys/class/typec/                               # no port*-partner = nothing negotiated
 ```
 
-**Automatic check:** `easylinux --tbt-check` (also part of `--system`, and at login with a desktop notification) warns when the firmware is older than NVM 20. It never flashes by itself; `sudo easylinux --tbt-update` flashes it with fwupd, with fwupd's AC check left on.
+**Automatic check:** `easyset --tbt-check` (also part of `--system`, and at login with a desktop notification) warns when the firmware is older than NVM 20. It never flashes by itself; `sudo easyset --tbt-update` flashes it with fwupd, with fwupd's AC check left on.
 
 **Fix (tested on this X280, 2026-11-28):** flash the Thunderbolt firmware from LVFS with `fwupd`. Only that device; the BIOS (1.59) and EC (1.15) were already current.
 ```bash

@@ -1,4 +1,7 @@
-Package: easylinux
+Package: easyset
+Provides: easylinux
+Replaces: easylinux
+Conflicts: easylinux
 Version: @VERSION@
 Section: utils
 Priority: optional
@@ -7,14 +10,14 @@ Depends: bash, coreutils, findutils, procps, polkitd | policykit-1
 Recommends: kitty, policykit-1-gnome | mate-polkit | lxpolkit, xserver-xorg-input-synaptics, gnome-keyring, libpam-gnome-keyring, seahorse, libsecret-tools, yaru-theme-gtk, yaru-theme-icon, elementary-icon-theme, fonts-noto-core, xfce4-genmon-plugin
 Suggests: snapper, timeshift
 Maintainer: hyydra <hyydra@users.noreply.github.com>
-Homepage: https://github.com/hyydra/easylinux
+Homepage: https://github.com/hyydra/easyset-linux
 Installed-Size: @SIZE@
 Description: easyset linux: one-command Linux desktop and hardware settings with a safety net
  Windows-style Ctrl+C/Ctrl+V (also in the terminal), one global keyboard
  layout, a self-restarting XFCE panel and ThinkPad X280 fixes. Every system
  change is snapshotted first, GRUB is hardened so the boot menu never waits
  forever, and a boot guard rolls changes back if the desktop stops coming up.
- Undo anytime with: sudo easylinux --rollback
+ Undo anytime with: sudo easyset --rollback
  .
  WARNING: experimental and risky. It modifies /etc, the initramfs and the GRUB
  configuration as root, and was tested on a single machine (ThinkPad X280,

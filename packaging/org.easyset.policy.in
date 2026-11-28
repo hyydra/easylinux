@@ -1,22 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE policyconfig PUBLIC "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
  "http://www.freedesktop.org/standards/PolicyKit/1/policyconfig.dtd">
-<!-- Graphical administrator prompt for easylinux (the Linux counterpart of Windows UAC).
+<!-- Graphical administrator prompt for easyset (the Linux counterpart of Windows UAC).
      Only the installed, root-owned easylinux command is covered; it runs nothing but the
      scripts shipped in its own install directory. The password is still required; with
      auth_admin_keep it is remembered for a few minutes, so a multi-step run asks once. -->
 <policyconfig>
-  <vendor>easylinux</vendor>
-  <vendor_url>https://github.com/hyydra/easylinux</vendor_url>
-  <action id="org.easylinux.apply">
-    <description>Change system settings with easylinux</description>
-    <message>easylinux wants to change system settings (boot safety, drivers, hardware). A snapshot is taken first and can be undone with "easylinux --rollback".</message>
+  <vendor>easyset</vendor>
+  <vendor_url>https://github.com/hyydra/easyset-linux</vendor_url>
+  <action id="org.easyset.apply">
+    <description>Change system settings with easyset</description>
+    <message>easyset wants to change system settings (boot safety, drivers, hardware). A snapshot is taken first and can be undone with "easyset --rollback".</message>
     <defaults>
       <allow_any>auth_admin</allow_any>
       <allow_inactive>auth_admin</allow_inactive>
       <allow_active>auth_admin_keep</allow_active>
     </defaults>
-    <annotate key="org.freedesktop.policykit.exec.path">@PREFIX@/bin/easylinux</annotate>
+    <annotate key="org.freedesktop.policykit.exec.path">@PREFIX@/bin/easyset</annotate>
     <annotate key="org.freedesktop.policykit.exec.allow_gui">false</annotate>
   </action>
 </policyconfig>

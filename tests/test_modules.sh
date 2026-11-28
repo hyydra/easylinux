@@ -55,8 +55,8 @@ ar /bin/true.sh;     assert_contains "$SB/out" "Refusing" "absolute paths are re
 ar plain.txt;        assert_contains "$SB/out" "Refusing" "non-script files are refused"
 ar sub/missing.sh;   assert_contains "$SB/out" "Refusing" "unknown scripts are refused"
 env -u ES_TEST bash install.sh --as-root sub/ok.sh > "$SB/out" 2>&1; assert_contains "$SB/out" "pkexec (root) only" "a normal user cannot call --as-root directly"
-sed 's|@PREFIX@|/usr|' packaging/org.easylinux.policy.in > "$SB/policy"
-assert_contains "$SB/policy" 'org.freedesktop.policykit.exec.path">/usr/bin/easylinux<' "polkit action is bound to the easylinux command"
+sed 's|@PREFIX@|/usr|' packaging/org.easyset.policy.in > "$SB/policy"
+assert_contains "$SB/policy" 'org.freedesktop.policykit.exec.path">/usr/bin/easyset<' "polkit action is bound to the easyset command"
 assert_contains "$SB/policy" "<allow_active>auth_admin_keep</allow_active>" "an administrator password is required (remembered briefly)"
 assert_lacks "$SB/policy" "yes</allow" "no action is granted without authentication"
 

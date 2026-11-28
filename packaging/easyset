@@ -1,0 +1,4 @@
+#!/bin/sh
+# easyset command: thin wrapper around the installed install.sh
+dir="$(dirname "$(readlink -f "$0")")/../share/easyset"
+EASYLINUX_PROG=easyset exec bash "$dir/install.sh" "$@"

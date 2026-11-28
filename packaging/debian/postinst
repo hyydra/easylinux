@@ -2,17 +2,21 @@
 set -e
 if [ "$1" = configure ]; then
     cat >&2 << 'MSG'
-easylinux: EXPERIMENTAL and RISKY. It changes /etc, the initramfs and the GRUB
+easyset linux: EXPERIMENTAL and RISKY. It changes /etc, the initramfs and the GRUB
 configuration, and was tested on one machine only. A safety net is armed first
-(undo: sudo easylinux --rollback), but keep a live USB at hand.
-Opt out of automatic changes in /etc/easylinux/easylinux.conf.
+(undo: sudo easyset --rollback), but keep a live USB at hand.
+Opt out of automatic changes in /etc/easyset/easyset.conf.
 MSG
+    # migrate the settings of the old "easylinux" package name, once
+    if [ -r /etc/easylinux/easylinux.conf ] && ! grep -q '^AUTO_' /etc/easyset/easyset.conf 2>/dev/null; then
+        cp /etc/easylinux/easylinux.conf /etc/easyset/easyset.conf
+    fi
     AUTO_SYSTEM=1
-    [ -r /etc/easylinux/easylinux.conf ] && . /etc/easylinux/easylinux.conf
+    [ -r /etc/easyset/easyset.conf ] && . /etc/easyset/easyset.conf
     if [ "$AUTO_SYSTEM" = 1 ]; then
         # Never fail the package installation because of a tweak.
-        EASYLINUX_NO_PKG=1 /usr/bin/easylinux --system \
-            || echo "easylinux: some system settings were not applied (see above); retry with: sudo easylinux --system" >&2
+        EASYLINUX_NO_PKG=1 /usr/bin/easyset --system \
+            || echo "easyset: some system settings were not applied (see above); retry with: sudo easyset --system" >&2
     fi
 fi
 exit 0
