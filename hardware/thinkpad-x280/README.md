@@ -30,10 +30,9 @@ sudo ./setup-touchpad-split.sh
 
 ## Known issue: charging stops / charger not detected (Thunderbolt firmware)
 
-**HU:** A töltés időnként vagy teljesen leáll, akármilyen töltővel és kábellel. A power gomb LED-je bedugáskor villog, a rendszer nem látja a töltőt, vagy 1-2 másodpercre látja és elengedi.
-**EN:** Charging stops now and then or entirely, with any charger and cable. The power-button LED blinks on plug-in; the OS does not see the charger, or sees it for 1-2 s and loses it again.
+Charging stops now and then or entirely, with any charger and cable. The power-button LED blinks on plug-in; the OS does not see the charger, or sees it for 1-2 s and loses it again.
 
-**Cause / Ok:** The X280 charges **only over USB-C**, and the power negotiation (USB-PD) runs through the Thunderbolt 3 controller. Its old firmware (**NVM 14.00** and earlier) is the known 2018 ThinkPad Thunderbolt bug (X280, T480, T480s, X1 Carbon 6, ...): it wears out its own flash and USB-C, including charging, starts failing. Lenovo's fix is **NVM 20.00**.
+**Cause:** The X280 charges **only over USB-C**, and the power negotiation (USB-PD) runs through the Thunderbolt 3 controller. Its old firmware (**NVM 14.00** and earlier) is the known 2018 ThinkPad Thunderbolt bug (X280, T480, T480s, X1 Carbon 6, ...): it wears out its own flash and USB-C, including charging, starts failing. Lenovo's fix is **NVM 20.00**.
 
 **Diagnose:**
 ```bash
