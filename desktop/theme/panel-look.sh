@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # A tidier XFCE panel to go with the Yaru/elementary theme (per user, no root):
-#   - bar 36 px with 28 px icons for the menu button and task list, and smaller (18 px) status tray
-#     icons, so the tray has room to breathe instead of everything being the same cramped size
+#   - roomy bar: 48 px high, 32 px icons for the menu button and task list, 22 px status tray icons,
+#     and 4x8 px padding on the panel buttons (bigger click targets)
+#   - the menu button shows its icon plus the word "Start": a wide target that is easy to hit
 #   - bar position locked and no task-list handle: no dotted drag-handle marks at the ends
 #   - weather plugin: flat "simplistic" icon set instead of the glossy "liquid" one
 #   - battery plugin: an icon next to the percentage instead of the coloured bar
@@ -17,7 +18,7 @@ PANEL_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/xfce4/panel"
 AUTOSTART="${XDG_CONFIG_HOME:-$HOME/.config}/autostart/nm-applet.desktop"
 GTK_CSS="${XDG_CONFIG_HOME:-$HOME/.config}/gtk-3.0/gtk.css"
 WEATHER="${EASYLINUX_WEATHER_ICONS:-/usr/share/xfce4/weather/icons}"
-SIZE=36; ICON_SIZE=28; TRAY_ICON_SIZE=18
+SIZE=48; ICON_SIZE=32; TRAY_ICON_SIZE=22
 q() { xfconf-query -c xfce4-panel "$@"; }
 
 # start menu height: as tall as fits above the bar (screen height - bar - a margin), 400..800 px
@@ -52,6 +53,9 @@ writes() {
     for id in $(plugin_ids whiskermenu); do
         printf '/plugins/plugin-%s/menu-height\tint\t%s\n' "$id" "$MENU_H"
         printf '/plugins/plugin-%s/menu-width\tint\t480\n' "$id"
+        printf '/plugins/plugin-%s/show-button-title\tbool\ttrue\n' "$id"
+        printf '/plugins/plugin-%s/button-title\tstring\tStart\n' "$id"
+        printf '/plugins/plugin-%s/show-button-icon\tbool\ttrue\n' "$id"
     done
     for id in $(plugin_ids systray); do
         printf '/plugins/plugin-%s/icon-size\tuint\t%s\n' "$id" "$TRAY_ICON_SIZE"
@@ -71,8 +75,9 @@ if [ "${1:-}" = --undo ]; then
             f) cp -f "$STATE/$path" "$PANEL_DIR/$(basename "$path" .bak)" 2>/dev/null || true ;;
         esac
     done < "$BACKUP"
-    if [ -f "$GTK_CSS" ] && grep -qF "easylinux-whisker" "$GTK_CSS"; then
+    if [ -f "$GTK_CSS" ] && grep -qE "easylinux-(whisker|panel-padding)" "$GTK_CSS"; then
         sed -i '/easylinux-whisker: start menu/,/end easylinux-whisker/d' "$GTK_CSS"
+        sed -i '/easylinux-panel-padding/,/end easylinux-panel-padding/d' "$GTK_CSS"
         sed -i -e :a -e '/^\n*$/{$d;N;ba' -e '}' "$GTK_CSS"
     fi
     rm -f "$AUTOSTART" "$BACKUP"
@@ -106,7 +111,7 @@ for rc in "$PANEL_DIR"/battery-*.rc; do
     sed -i 's/^display_icon=.*/display_icon=true/; s/^display_bar=.*/display_bar=false/' "$rc"
 done
 if [ "$stopped" = 1 ]; then (setsid xfce4-panel >/dev/null 2>&1 &); fi
-echo "[✓] Panel $SIZE px, icons $ICON_SIZE px (tray $TRAY_ICON_SIZE px), locked, battery icon, flat weather icons, start menu ${MENU_H}px"
+echo "[✓] Panel $SIZE px, icons $ICON_SIZE px (tray $TRAY_ICON_SIZE px), locked, battery icon, flat weather icons, start menu ${MENU_H}px, wide Start button"
 
 # start menu without the dark outline: one marked block in the user's GTK CSS (kept idempotent)
 mkdir -p "$(dirname "$GTK_CSS")"; touch "$GTK_CSS"
@@ -122,6 +127,17 @@ $CSS_BEGIN
     outline: none;
 }
 $CSS_END
+EOF
+fi
+if ! grep -qF "easylinux-panel-padding" "$GTK_CSS"; then
+    cat >> "$GTK_CSS" <<'EOF'
+
+/* easylinux-panel-padding: roomier panel buttons, bigger click targets */
+.xfce4-panel button {
+    padding: 4px 8px;
+    min-height: 36px;
+}
+/* end easylinux-panel-padding */
 EOF
 fi
 if [ "$stopped" = 0 ] && panel_running; then (setsid xfce4-panel -r >/dev/null 2>&1 &); fi
