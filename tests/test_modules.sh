@@ -39,6 +39,7 @@ if [ "$(id -u)" -eq 0 ]; then echo "  skip --system dispatch (running as root wo
     assert_contains "$SB/out" "harden-boot.sh" "--system hardens the boot everywhere"
     assert_contains "$SB/out" "fix-system-errors.sh" "--system applies ThinkPad fixes on an X280"
     assert_contains "$SB/out" "setup-touchpad-split.sh" "--system applies the touchpad split on an X280"
+    assert_contains "$SB/out" "Thunderbolt firmware" "--system checks the Thunderbolt firmware on an X280"
     echo "ThinkPad T14" > "$SB/dmi"
     EASYLINUX_DMI_FILE="$SB/dmi" PATH="$SB/bin:$PATH" bash install.sh --system > "$SB/out" 2>&1
     assert_contains "$SB/out" "harden-boot.sh" "other laptop: boot hardening still applied"
@@ -115,6 +116,25 @@ assert_contains "$SB/xfconf" "/xfce4-power-manager/power-button-action -n -t uin
 EASYLINUX_LOGIND_DROPIN="$SB/logind.conf" bash desktop/suspend-keys/setup-system.sh >/dev/null 2>&1
 assert_contains "$SB/logind.conf" "HandlePowerKey=suspend" "logind: power button suspends"
 assert_contains "$SB/logind.conf" "HandleSuspendKey=suspend" "logind: suspend key suspends"
+
+echo "-- Thunderbolt firmware check"
+C=hardware/thinkpad-x280/check-thunderbolt-firmware.sh
+mkdir -p "$SB/tbt"; echo "ThinkPad X280" > "$SB/dmi-x280"; echo "ThinkPad T14" > "$SB/dmi-t14"
+tbt() { EASYLINUX_DMI_FILE="$SB/$1" EASYLINUX_TBT_SYSFS="$SB/tbt" PATH="$SB/bin:$PATH" bash "$C" ${2:-} > "$SB/out" 2>&1; }
+echo "14.0" > "$SB/tbt/nvm_version"; tbt dmi-x280
+assert_eq "$?" 0 "an outdated firmware is a warning, not a failure"
+assert_contains "$SB/out" "NVM 14.0 is OLDER than 20" "NVM 14.0 is reported as affected"
+assert_contains "$SB/out" "easylinux --tbt-update" "the fix command is shown"
+printf '#!/bin/sh\necho "$@" >> %s/notified\n' "$SB" > "$SB/bin/notify-send"; chmod +x "$SB/bin/notify-send"
+tbt dmi-x280 --notify
+assert_contains "$SB/notified" "Thunderbolt firmware is outdated" "--notify shows a desktop notification"
+echo "20.0" > "$SB/tbt/nvm_version"; rm -f "$SB/notified"; tbt dmi-x280 --notify
+assert_contains "$SB/out" "not affected" "NVM 20.0 is fine"
+assert_no_file "$SB/notified" "no notification when the firmware is fixed"
+echo "14.0" > "$SB/tbt/nvm_version"; tbt dmi-t14
+assert_contains "$SB/out" "Not a ThinkPad X280" "other laptops are skipped"
+rm -f "$SB/tbt/nvm_version"; tbt dmi-x280
+assert_contains "$SB/out" "Thunderbolt controller not visible" "missing controller is skipped, not an error"
 
 echo "-- keyring module"
 S=desktop/keyring/setup-keyring.sh

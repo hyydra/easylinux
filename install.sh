@@ -33,6 +33,9 @@ apply_user() {
         echo "[skip] XFCE not found: panel watchdog and global keyboard layout"
     fi
     step "Windows-style clipboard" bash "$ROOT_DIR/desktop/windows-clipboard/install.sh"
+    if is_thinkpad_x280; then
+        step "ThinkPad X280 Thunderbolt firmware check" bash "$ROOT_DIR/hardware/thinkpad-x280/check-thunderbolt-firmware.sh" --notify
+    fi
     if command -v xfconf-query >/dev/null 2>&1; then
         step "Keyboard backlight keys" bash "$ROOT_DIR/desktop/kbd-backlight/install.sh"
         step "Suspend keys" bash "$ROOT_DIR/desktop/suspend-keys/install.sh"
@@ -49,6 +52,7 @@ apply_system() {
     if is_thinkpad_x280; then
         step "ThinkPad X280 fixes" as_root bash "$ROOT_DIR/hardware/thinkpad-x280/fix-system-errors.sh"
         step "ThinkPad X280 touchpad split" as_root bash "$ROOT_DIR/hardware/thinkpad-x280/setup-touchpad-split.sh"
+        step "ThinkPad X280 Thunderbolt firmware check" bash "$ROOT_DIR/hardware/thinkpad-x280/check-thunderbolt-firmware.sh"
     else
         echo "[skip] Not a ThinkPad X280: hardware fixes not applied"
     fi
@@ -75,6 +79,8 @@ install_all() {
     as_root bash "$ROOT_DIR/hardware/thinkpad-x280/fix-system-errors.sh"
     echo ""
     as_root bash "$ROOT_DIR/hardware/thinkpad-x280/setup-touchpad-split.sh"
+    echo ""
+    bash "$ROOT_DIR/hardware/thinkpad-x280/check-thunderbolt-firmware.sh"
 }
 
 show_menu() {
@@ -149,6 +155,12 @@ else
         --clipboard)
             bash "$ROOT_DIR/desktop/windows-clipboard/install.sh"
             ;;
+        --tbt-check)
+            bash "$ROOT_DIR/hardware/thinkpad-x280/check-thunderbolt-firmware.sh"
+            ;;
+        --tbt-update)
+            as_root bash "$ROOT_DIR/hardware/thinkpad-x280/check-thunderbolt-firmware.sh" --update
+            ;;
         --kbd-backlight)
             bash "$ROOT_DIR/desktop/kbd-backlight/install.sh"
             ;;
@@ -186,7 +198,7 @@ else
             as_root bash "$ROOT_DIR/safety/easylinux-rollback.sh" "$@"
             ;;
         *)
-            echo "Usage: ${PROG##*/} [--user | --system | --boot | --version | --panel | --thinkpad | --touchpad | --keyboard | --clipboard | --kbd-backlight | --kbd-backlight-boot | --suspend-keys | --keyring | --scroll natural|traditional|toggle | --all | --rollback [--list|snapshot]]"
+            echo "Usage: ${PROG##*/} [--user | --system | --boot | --version | --panel | --thinkpad | --touchpad | --keyboard | --clipboard | --kbd-backlight | --kbd-backlight-boot | --suspend-keys | --keyring | --tbt-check | --tbt-update | --scroll natural|traditional|toggle | --all | --rollback [--list|snapshot]]"
             exit 1
             ;;
     esac
