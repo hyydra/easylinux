@@ -146,6 +146,14 @@ if [ -n "$actions" ]; then
         set_panel_ids "$panel" "${keep[@]}"
     done
 fi
+# the show-desktop button goes to the far right of the bar, after the layout indicator
+sd="$(plugin_ids showdesktop | paste -sd' ')"
+if [ -n "$sd" ]; then
+    for panel in $(panel_paths); do
+        rest=(); last=(); for id in $(panel_ids "$panel"); do case " $sd " in *" $id "*) last+=("$id") ;; *) rest+=("$id") ;; esac; done
+        set_panel_ids "$panel" "${rest[@]}" "${last[@]}"
+    done
+fi
 if [ "$stopped" = 1 ]; then (setsid xfce4-panel >/dev/null 2>&1 &); fi
 echo "[✓] Panel $SIZE px, icons $ICON_SIZE px (tray $TRAY_ICON_SIZE px), locked, battery icon, flat weather icons, start menu ${MENU_H}px, wide Start button"
 
