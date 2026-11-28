@@ -230,11 +230,19 @@ esac
 STUB
 chmod +x "$SB/bin/gsettings"; export GS="$SB/gs"
 printf '#!/bin/sh\nexit 0\n' > "$SB/bin/xfconf-query"; chmod +x "$SB/bin/xfconf-query"
+printf '#!/bin/sh\nexit 0\n' > "$SB/bin/ibus-daemon"; chmod +x "$SB/bin/ibus-daemon"
 gk() { rm -f "$GS"; IBUS_ENGINES="$1" PATH="$SB/bin:$PATH" bash desktop/xfce-global-keyboard/set-global-keyboard.sh >/dev/null 2>&1; }
 gk "['xkb:us::eng']";                assert_contains "$GS" "false" "single xkb engine: tray icon hidden"
 gk "@as []";                         assert_contains "$GS" "false" "no engine: tray icon hidden"
 gk "['xkb:us::eng', 'mozc-jp']";     assert_no_file "$GS" "a real input method keeps the tray icon"
 gk "['xkb:us::eng', 'xkb:hu::hun']"; assert_no_file "$GS" "more than one engine keeps the tray icon"
+rm -f "$SB/bin/ibus-daemon"
+# a minimal PATH without ibus-daemon (IBus uninstalled): the IBus step is skipped entirely
+mkdir -p "$SB/noibus"; for c in bash grep sed cat dirname printf rm mkdir basename env; do ln -sf "$(command -v "$c")" "$SB/noibus/$c"; done
+ln -sf "$SB/bin/gsettings" "$SB/noibus/gsettings"; ln -sf "$SB/bin/xfconf-query" "$SB/noibus/xfconf-query"
+rm -f "$GS"; IBUS_ENGINES="['xkb:us::eng']" PATH="$SB/noibus" "$SB/noibus/bash" desktop/xfce-global-keyboard/set-global-keyboard.sh > "$SB/out" 2>&1
+assert_no_file "$GS" "without IBus installed the IBus step does nothing"
+assert_lacks "$SB/out" "IBus" "and does not mention IBus"
 unset GS IBUS_ENGINES; rm -f "$SB/bin/gsettings"
 
 echo "-- layout indicator replaces the xkb plugin"

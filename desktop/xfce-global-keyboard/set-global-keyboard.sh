@@ -27,8 +27,8 @@ if [ "$COUNT" -eq 0 ]; then
     echo "[!] Note: No active xkb plugin found on xfce4-panel."
 fi
 
-# Ensure ibus also uses global engine if available
-if command -v gsettings >/dev/null 2>&1; then
+# Ensure ibus also uses global engine, if IBus is installed (it is optional: nothing here needs it)
+if command -v gsettings >/dev/null 2>&1 && command -v ibus-daemon >/dev/null 2>&1; then
     gsettings set org.freedesktop.ibus.general use-global-engine true 2>/dev/null || true
     echo "[✓] Configured IBus use-global-engine = true"
     # With a single plain keyboard engine IBus adds nothing but a second, redundant "EN" tray icon,
