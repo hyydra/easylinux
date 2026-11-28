@@ -5,6 +5,7 @@
 #   - bar position locked and no task-list handle: no dotted drag-handle marks at the ends
 #   - weather plugin: flat "simplistic" icon set instead of the glossy "liquid" one
 #   - battery plugin: an icon next to the percentage instead of the coloured bar
+#   - taller start (Whisker) menu that fits the screen, without the dark outline (GTK CSS block)
 #   - nm-applet in indicator mode + Wi-Fi signal icons from the icon theme (nm-signal-icons.sh)
 # The previous values are saved once; panel-look.sh --undo puts them back.
 set -euo pipefail
@@ -14,9 +15,17 @@ STATE="${XDG_STATE_HOME:-$HOME/.local/state}/easylinux"
 BACKUP="$STATE/panel-look-backup"
 PANEL_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/xfce4/panel"
 AUTOSTART="${XDG_CONFIG_HOME:-$HOME/.config}/autostart/nm-applet.desktop"
+GTK_CSS="${XDG_CONFIG_HOME:-$HOME/.config}/gtk-3.0/gtk.css"
 WEATHER="${EASYLINUX_WEATHER_ICONS:-/usr/share/xfce4/weather/icons}"
 SIZE=36; ICON_SIZE=28; TRAY_ICON_SIZE=18
 q() { xfconf-query -c xfce4-panel "$@"; }
+
+# start menu height: as tall as fits above the bar (screen height - bar - a margin), 400..800 px
+screen_h="$(xdpyinfo 2>/dev/null | sed -n 's/.*dimensions: *[0-9]*x\([0-9]*\) pixels.*/\1/p' | head -1 || true)"
+MENU_H=$(( ${screen_h:-0} > 0 ? screen_h - SIZE - 40 : 640 ))
+[ "$MENU_H" -lt 400 ] && MENU_H=400; [ "$MENU_H" -gt 800 ] && MENU_H=800
+CSS_BEGIN="/* easylinux-whisker: start menu without the dark outline */"
+CSS_END="/* end easylinux-whisker */"
 
 echo "==> Panel look"
 if ! command -v xfconf-query >/dev/null 2>&1; then echo "[skip] not XFCE"; exit 0; fi
@@ -40,6 +49,10 @@ writes() {
         printf '%s/position-locked\tbool\ttrue\n' "$panel"
     done
     for id in $(plugin_ids tasklist); do printf '/plugins/plugin-%s/show-handle\tbool\tfalse\n' "$id"; done
+    for id in $(plugin_ids whiskermenu); do
+        printf '/plugins/plugin-%s/menu-height\tint\t%s\n' "$id" "$MENU_H"
+        printf '/plugins/plugin-%s/menu-width\tint\t480\n' "$id"
+    done
     for id in $(plugin_ids systray); do
         printf '/plugins/plugin-%s/icon-size\tuint\t%s\n' "$id" "$TRAY_ICON_SIZE"
         printf '/plugins/plugin-%s/square-icons\tbool\ttrue\n' "$id"
@@ -58,6 +71,10 @@ if [ "${1:-}" = --undo ]; then
             f) cp -f "$STATE/$path" "$PANEL_DIR/$(basename "$path" .bak)" 2>/dev/null || true ;;
         esac
     done < "$BACKUP"
+    if [ -f "$GTK_CSS" ] && grep -qF "easylinux-whisker" "$GTK_CSS"; then
+        sed -i '/easylinux-whisker: start menu/,/end easylinux-whisker/d' "$GTK_CSS"
+        sed -i -e :a -e '/^\n*$/{$d;N;ba' -e '}' "$GTK_CSS"
+    fi
     rm -f "$AUTOSTART" "$BACKUP"
     bash "$SCRIPT_DIR/nm-signal-icons.sh" --undo
     if [ "$stopped" = 1 ]; then (setsid xfce4-panel >/dev/null 2>&1 &); fi
@@ -89,7 +106,25 @@ for rc in "$PANEL_DIR"/battery-*.rc; do
     sed -i 's/^display_icon=.*/display_icon=true/; s/^display_bar=.*/display_bar=false/' "$rc"
 done
 if [ "$stopped" = 1 ]; then (setsid xfce4-panel >/dev/null 2>&1 &); fi
-echo "[✓] Panel $SIZE px, icons $ICON_SIZE px (tray $TRAY_ICON_SIZE px), locked, battery icon, flat weather icons"
+echo "[✓] Panel $SIZE px, icons $ICON_SIZE px (tray $TRAY_ICON_SIZE px), locked, battery icon, flat weather icons, start menu ${MENU_H}px"
+
+# start menu without the dark outline: one marked block in the user's GTK CSS (kept idempotent)
+mkdir -p "$(dirname "$GTK_CSS")"; touch "$GTK_CSS"
+if ! grep -qF "easylinux-whisker" "$GTK_CSS"; then
+    cat >> "$GTK_CSS" <<EOF
+
+$CSS_BEGIN
+#whiskermenu-window,
+#whiskermenu-window decoration,
+#whiskermenu-window > box {
+    border: none;
+    box-shadow: none;
+    outline: none;
+}
+$CSS_END
+EOF
+fi
+if [ "$stopped" = 0 ] && panel_running; then (setsid xfce4-panel -r >/dev/null 2>&1 &); fi
 
 # Wi-Fi: nm-applet in indicator mode, icons from the icon theme
 if [ -f /etc/xdg/autostart/nm-applet.desktop ]; then

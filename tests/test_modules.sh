@@ -295,7 +295,9 @@ case $mode in
 esac
 STUB
 chmod +x "$SB/pl/xfconf-query"; export XPL="$SB/pl/xp"
+printf '#!/bin/sh\necho "  dimensions:    1280x720 pixels (339x191 millimeters)"\n' > "$SB/pl/xdpyinfo"; chmod +x "$SB/pl/xdpyinfo"
 echo 36 > "$XPL/_panels_panel-1_size"; echo 0 > "$XPL/_panels_panel-1_icon-size"; echo false > "$XPL/_panels_panel-1_position-locked"
+echo whiskermenu > "$XPL/_plugins_plugin-1"; printf '/* user css */\n.dim-label { color: #404040; }\n' > "$SB/pl/gtk.css"; mkdir -p "$SB/pl/conf/gtk-3.0"; cp "$SB/pl/gtk.css" "$SB/pl/conf/gtk-3.0/gtk.css"
 echo tasklist > "$XPL/_plugins_plugin-2"; echo systray > "$XPL/_plugins_plugin-6"; echo battery > "$XPL/_plugins_plugin-12"; echo weather > "$XPL/_plugins_plugin-17"
 echo /usr/share/xfce4/weather/icons/liquid > "$XPL/_plugins_plugin-17_theme-dir"
 printf 'display_icon=false\ndisplay_bar=true\ndisplay_percentage=true\n' > "$SB/pl/conf/xfce4/panel/battery-12.rc"
@@ -306,6 +308,9 @@ assert_eq "$(cat "$XPL/_panels_panel-1_position-locked")" true "position locked 
 assert_eq "$(cat "$XPL/_plugins_plugin-6_icon-size")" 18 "tray icons smaller"
 assert_eq "$(cat "$XPL/_plugins_plugin-2_show-handle")" false "task-list handle off"
 assert_eq "$(cat "$XPL/_plugins_plugin-17_theme-dir")" "$SB/pl/weather/simplistic" "flat weather icons"
+assert_eq "$(cat "$XPL/_plugins_plugin-1_menu-height")" 644 "start menu fits the screen: 720 - 36 bar - 40 margin"
+assert_contains "$SB/pl/conf/gtk-3.0/gtk.css" "#whiskermenu-window" "start menu outline removed through GTK CSS"
+assert_eq "$(grep -c 'easylinux-whisker: start menu' "$SB/pl/conf/gtk-3.0/gtk.css")" 1 "CSS block added once (second run changes nothing)"
 assert_contains "$SB/pl/conf/xfce4/panel/battery-12.rc" "display_icon=true" "battery shows an icon"
 assert_contains "$SB/pl/conf/xfce4/panel/battery-12.rc" "display_bar=false" "battery bar off"
 assert_contains "$SB/pl/state/easylinux/panel-look-backup" "/usr/share/xfce4/weather/icons/liquid" "original weather theme saved (not overwritten by the second run)"
@@ -314,6 +319,8 @@ assert_eq "$(cat "$XPL/_panels_panel-1_icon-size")" 0 "undo restores the icon si
 assert_eq "$(cat "$XPL/_plugins_plugin-17_theme-dir")" /usr/share/xfce4/weather/icons/liquid "undo restores the weather icons"
 assert_contains "$SB/pl/conf/xfce4/panel/battery-12.rc" "display_bar=true" "undo restores the battery plugin settings"
 assert_no_file "$XPL/_plugins_plugin-6_icon-size" "undo removes values that were not set before"
+assert_lacks "$SB/pl/conf/gtk-3.0/gtk.css" "easylinux-whisker" "undo removes the CSS block"
+assert_contains "$SB/pl/conf/gtk-3.0/gtk.css" ".dim-label" "and keeps the user's own CSS"
 unset XPL
 
 echo "-- keyring module"
