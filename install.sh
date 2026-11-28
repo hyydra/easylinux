@@ -43,6 +43,7 @@ apply_user() {
 # System settings (root): boot hardening everywhere, hardware fixes only where they apply.
 apply_system() {
     step "Boot hardening (GRUB guard, rollback)" as_root bash "$ROOT_DIR/safety/harden-boot.sh"
+    step "Suspend keys (logind)" as_root bash "$ROOT_DIR/desktop/suspend-keys/setup-system.sh"
     step "Password keyring" as_root bash "$ROOT_DIR/desktop/keyring/setup-keyring.sh"
     step "Keyboard backlight at boot and wake-up" as_root bash "$ROOT_DIR/desktop/kbd-backlight/setup-boot.sh"
     if is_thinkpad_x280; then
@@ -64,6 +65,8 @@ install_all() {
     bash "$ROOT_DIR/desktop/kbd-backlight/install.sh"
     echo ""
     bash "$ROOT_DIR/desktop/suspend-keys/install.sh"
+    echo ""
+    as_root bash "$ROOT_DIR/desktop/suspend-keys/setup-system.sh"
     echo ""
     as_root bash "$ROOT_DIR/desktop/keyring/setup-keyring.sh"
     echo ""
@@ -151,6 +154,7 @@ else
             ;;
         --suspend-keys)
             bash "$ROOT_DIR/desktop/suspend-keys/install.sh"
+            as_root bash "$ROOT_DIR/desktop/suspend-keys/setup-system.sh"
             ;;
         --kbd-backlight-boot)
             as_root bash "$ROOT_DIR/desktop/kbd-backlight/setup-boot.sh"

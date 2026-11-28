@@ -109,8 +109,11 @@ sh "$SB/helper-test"; assert_eq "$(cat "$SB/led/brightness")" 2 "helper sets the
 echo "-- suspend keys"
 printf '#!/bin/sh\necho "$@" >> %s/xfconf\n' "$SB" > "$SB/bin/xfconf-query"; chmod +x "$SB/bin/xfconf-query"
 PATH="$SB/bin:$PATH" bash desktop/suspend-keys/install.sh >/dev/null 2>&1
-assert_contains "$SB/xfconf" "/commands/custom/XF86Suspend -n -t string -s systemctl suspend" "XF86Suspend bound to systemctl suspend"
-assert_contains "$SB/xfconf" "/commands/custom/XF86Sleep -n -t string -s systemctl suspend" "Fn+4 (XF86Sleep) bound"
+assert_contains "$SB/xfconf" "/xfce4-power-manager/logind-handle-suspend-key -n -t bool -s true" "xfpm leaves the suspend key to logind"
+assert_contains "$SB/xfconf" "/xfce4-power-manager/logind-handle-power-key -n -t bool -s true" "xfpm leaves the power key to logind"
+EASYLINUX_LOGIND_DROPIN="$SB/logind.conf" bash desktop/suspend-keys/setup-system.sh >/dev/null 2>&1
+assert_contains "$SB/logind.conf" "HandlePowerKey=suspend" "logind: power button suspends"
+assert_contains "$SB/logind.conf" "HandleSuspendKey=suspend" "logind: suspend key suspends"
 
 echo "-- keyring module"
 S=desktop/keyring/setup-keyring.sh
