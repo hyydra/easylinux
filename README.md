@@ -104,6 +104,10 @@ make test        # runs tests/run.sh: rollback, GRUB hardening, boot guard, modu
 ```
 The tests run fully sandboxed (temp dirs, stubbed `sudo`, fake `grub-mkconfig`); they never touch the real `/etc`, GRUB or packages. They also run on every push (GitHub Actions) and gate every release. What they cannot cover: real boots, real GRUB, real hardware, non-Ubuntu distros.
 
+## Free icon set
+
+The outline icons are also available on their own as **easylinux Minimal** (CC0, public domain): `make icons` builds `dist/easylinux-minimal-icons-<version>.tar.gz`, which every release ships. See [iconset/README.md](iconset/README.md).
+
 ## Administrator prompt instead of sudo
 
 In a graphical session the installed package asks for the administrator password in a normal window (polkit, the Linux counterpart of Windows UAC) instead of `sudo` in a terminal. It is as safe as sudo: the password is still required, the dialog names the action ("easylinux wants to change system settings"), and the password is remembered for a few minutes, so a multi-step run asks once.

@@ -4,7 +4,7 @@ DESTDIR ?=
 VERSION := $(shell cat VERSION)
 SHARE   := $(DESTDIR)$(PREFIX)/share/easylinux
 
-.PHONY: install uninstall deb tarball test clean
+.PHONY: install uninstall deb tarball icons test clean
 
 install:
 	install -d $(SHARE) $(DESTDIR)$(PREFIX)/bin $(DESTDIR)/etc/easylinux $(DESTDIR)/etc/xdg/autostart $(DESTDIR)/usr/share/polkit-1/actions
@@ -28,6 +28,9 @@ test:
 
 deb:
 	bash packaging/build-deb.sh
+
+icons:
+	bash packaging/build-icons.sh
 
 tarball:
 	mkdir -p dist
