@@ -5,6 +5,7 @@
 #   toggle            flip light <-> dark and stay there
 #   auto              switch by time of day (LIGHT_AT / DARK_AT in the config) from now on
 #   --timer           what the systemd timer runs: apply the schedule only when MODE=auto
+#   refresh           re-apply the current look (after the icon set changed)
 #   status            print mode and current look
 CONF="${XDG_CONFIG_HOME:-$HOME/.config}/easylinux/theme.conf"
 THEMES="${EASYLINUX_THEMES_DIR:-/usr/share/themes}"
@@ -44,7 +45,14 @@ apply() {   # $1 = light|dark
     else
         icons="Yaru$suffix"
     fi
-    [ -d "$ICONS/$icons" ] && xfconf-query -c xsettings -p /Net/IconThemeName -n -t string -s "$icons"
+    # the generated minimalist overlay (minimal-icons.sh) inherits the choice above and adds
+    # its own battery and desktop icons; use it when it is installed
+    if [ -f "${XDG_DATA_HOME:-$HOME/.local/share}/icons/easylinux/index.theme" ]; then
+        icons="easylinux"
+    elif [ ! -d "$ICONS/$icons" ]; then
+        icons=""
+    fi
+    [ -n "$icons" ] && xfconf-query -c xsettings -p /Net/IconThemeName -n -t string -s "$icons"
     if command -v gsettings >/dev/null 2>&1; then
         scheme=default; [ "$1" = dark ] && scheme=prefer-dark
         gsettings set org.gnome.desktop.interface color-scheme "$scheme" 2>/dev/null || true
@@ -57,6 +65,7 @@ case "${1:-status}" in
     toggle)     [ "$(current)" = dark ] && MODE=light || MODE=dark; save_conf; apply "$MODE"; echo "theme: $MODE" ;;
     auto)       MODE=auto; save_conf; s=$(scheduled); apply "$s"; echo "theme: automatic ($LIGHT_AT light, $DARK_AT dark), now $s" ;;
     --timer)    [ "$MODE" = auto ] || exit 0; s=$(scheduled); [ "$(current)" = "$s" ] || apply "$s" ;;
+    refresh)    apply "$(current)" ;;
     status)     echo "mode=$MODE light_at=$LIGHT_AT dark_at=$DARK_AT now=$(current)" ;;
-    *)          echo "Usage: ${0##*/} light|dark|toggle|auto|status" >&2; exit 1 ;;
+    *)          echo "Usage: ${0##*/} light|dark|toggle|auto|refresh|status" >&2; exit 1 ;;
 esac

@@ -180,6 +180,10 @@ EASYLINUX_NOW=21:40 th "$TB" auto
 assert_eq "$(cat "$XF/xsettings_Net_IconThemeName")" elementary "with elementary installed: elementary icons at night"
 EASYLINUX_NOW=10:00 th "$TB" auto
 assert_eq "$(cat "$XF/xsettings_Net_IconThemeName")" elementary "and by day"
+mkdir -p "$SB/home/.local/share/icons/easylinux"; : > "$SB/home/.local/share/icons/easylinux/index.theme"
+th "$TB" refresh
+assert_eq "$(cat "$XF/xsettings_Net_IconThemeName")" easylinux "the generated minimalist overlay is used when installed"
+rm -rf "$SB/home/.local/share/icons/easylinux"
 rm -rf "$SB/icons/elementary"; EASYLINUX_NOW=21:30 th "$TB" auto
 assert_eq "$(cat "$XF/xfwm4_general_theme")" Yaru-dark-hdpi "dark window frame at hdpi"
 assert_eq "$(cat "$XF/gs_color-scheme")" prefer-dark "apps told dark"
@@ -285,18 +289,20 @@ mkdir -p "$SB/pl/xp" "$SB/pl/conf/xfce4/panel" "$SB/pl/weather/simplistic" "$SB/
 cat > "$SB/pl/xfconf-query" <<'STUB'
 #!/bin/sh
 p=""; v=""; mode=get
-while [ $# -gt 0 ]; do case "$1" in -p) p="$2"; shift ;; -s) v="$2"; mode=set; shift ;; -l) mode=list ;; -r) mode=rm ;; esac; shift; done
+while [ $# -gt 0 ]; do case "$1" in -p) p="$2"; shift ;; -s) v="$v$2
+"; mode=set; shift ;; -l) mode=list ;; -r) mode=rm ;; esac; shift; done
 f="$XPL/$(echo "$p" | tr / _)"
 case $mode in
     list) for x in "$XPL"/*; do basename "$x" | tr _ /; done ;;
     get)  [ -f "$f" ] && cat "$f" || exit 1 ;;
-    set)  echo "$v" > "$f" ;;
+    set)  printf '%s' "$v" > "$f" ;;
     rm)   rm -f "$f" ;;
 esac
 STUB
 chmod +x "$SB/pl/xfconf-query"; export XPL="$SB/pl/xp"
 printf '#!/bin/sh\necho "  dimensions:    1280x720 pixels (339x191 millimeters)"\n' > "$SB/pl/xdpyinfo"; chmod +x "$SB/pl/xdpyinfo"
 echo 36 > "$XPL/_panels_panel-1_size"; echo 0 > "$XPL/_panels_panel-1_icon-size"; echo false > "$XPL/_panels_panel-1_position-locked"
+printf '1\n2\n10\n12\n' > "$XPL/_panels_panel-1_plugin-ids"; echo actions > "$XPL/_plugins_plugin-10"
 echo whiskermenu > "$XPL/_plugins_plugin-1"; printf '/* user css */\n.dim-label { color: #404040; }\n' > "$SB/pl/gtk.css"; mkdir -p "$SB/pl/conf/gtk-3.0"; cp "$SB/pl/gtk.css" "$SB/pl/conf/gtk-3.0/gtk.css"
 echo tasklist > "$XPL/_plugins_plugin-2"; echo systray > "$XPL/_plugins_plugin-6"; echo battery > "$XPL/_plugins_plugin-12"; echo weather > "$XPL/_plugins_plugin-17"
 echo /usr/share/xfce4/weather/icons/liquid > "$XPL/_plugins_plugin-17_theme-dir"
@@ -305,6 +311,8 @@ pl() { ES_TEST=1 EASYLINUX_ICONS_DIR="$SB/pl/icons" EASYLINUX_WEATHER_ICONS="$SB
 pl; pl
 assert_eq "$(cat "$XPL/_panels_panel-1_size")" 48 "roomy 48 px bar"
 assert_eq "$(cat "$XPL/_panels_panel-1_icon-size")" 32 "menu/task icons 32 px"
+assert_eq "$(paste -sd' ' "$XPL/_panels_panel-1_plugin-ids")" "1 2 12" "the user-name (actions) button is removed from the panel"
+assert_file "$SB/pl/data/icons/easylinux/index.theme" "minimalist icon overlay generated"
 assert_eq "$(cat "$XPL/_panels_panel-1_position-locked")" true "position locked (no drag handles)"
 assert_eq "$(cat "$XPL/_plugins_plugin-6_icon-size")" 22 "tray icons 22 px"
 assert_eq "$(cat "$XPL/_plugins_plugin-2_show-handle")" false "task-list handle off"
@@ -320,6 +328,8 @@ assert_contains "$SB/pl/conf/xfce4/panel/battery-12.rc" "display_bar=false" "bat
 assert_contains "$SB/pl/state/easylinux/panel-look-backup" "/usr/share/xfce4/weather/icons/liquid" "original weather theme saved (not overwritten by the second run)"
 pl --undo
 assert_eq "$(cat "$XPL/_panels_panel-1_icon-size")" 0 "undo restores the icon size"
+assert_eq "$(paste -sd' ' "$XPL/_panels_panel-1_plugin-ids")" "1 2 10 12" "undo puts the user-name button back"
+assert_no_file "$SB/pl/data/icons/easylinux/index.theme" "undo removes the icon overlay"
 assert_eq "$(cat "$XPL/_plugins_plugin-17_theme-dir")" /usr/share/xfce4/weather/icons/liquid "undo restores the weather icons"
 assert_contains "$SB/pl/conf/xfce4/panel/battery-12.rc" "display_bar=true" "undo restores the battery plugin settings"
 assert_no_file "$XPL/_plugins_plugin-6_icon-size" "undo removes values that were not set before"
@@ -351,6 +361,25 @@ assert_eq "$(cat "$XDL/xfce4-desktop_desktop-icons_gravity")" 0 "undo restores t
 assert_eq "$(cat "$XDL/xfwm4_general_workspace_count")" 4 "undo restores the workspace count"
 assert_no_file "$XDL/xfce4-desktop_desktop-icons_confirm-sorting" "undo unsets values that were not set before"
 unset XDL
+
+echo "-- minimalist, colourless icon set"
+MI=desktop/theme/minimal-icons.sh
+XDG_DATA_HOME="$SB/mi" bash "$MI" > "$SB/out" 2>&1
+D="$SB/mi/icons/easylinux"
+for n in status/scalable/battery-full-charging status/scalable/battery-low status/scalable/xfce4-battery-ok-charging status/symbolic/battery-level-50-symbolic places/scalable/user-home places/scalable/user-trash devices/scalable/drive-harddisk devices/scalable/drive-removable-media; do assert_file "$D/$n.svg" "icon $n"; done
+assert_contains "$D/index.theme" "Inherits=elementary,hicolor" "overlay inherits the main icon theme (only adds icons)"
+python3 -I -c "
+import glob, sys, xml.etree.ElementTree as ET
+bad = []
+for f in glob.glob('$D/**/*.svg', recursive=True):
+    try: ET.parse(f)
+    except Exception as e: bad.append(f)
+print(len(bad))" > "$SB/xml"
+assert_eq "$(cat "$SB/xml")" 0 "every generated icon is valid SVG"
+colours="$(grep -rhoE '#[0-9a-fA-F]{6}' "$D" | sort -u | while read -r c; do r=$((16#${c:1:2})); g=$((16#${c:3:2})); b=$((16#${c:5:2})); d=$(( r>g ? r-g : g-r )); e=$(( g>b ? g-b : b-g )); [ $d -gt 40 ] || [ $e -gt 40 ] && echo "$c"; done)"
+assert_eq "$colours" "" "no colour at all: only grey tones"
+XDG_DATA_HOME="$SB/mi" bash "$MI" --undo > /dev/null 2>&1
+assert_no_file "$D" "--undo removes the overlay"
 
 echo "-- keyring module"
 S=desktop/keyring/setup-keyring.sh

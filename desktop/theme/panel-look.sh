@@ -7,6 +7,8 @@
 #   - weather plugin: flat "simplistic" icon set instead of the glossy "liquid" one
 #   - battery plugin: an icon next to the percentage instead of the coloured bar
 #   - taller start (Whisker) menu that fits the screen, without the dark outline (GTK CSS block)
+#   - the user-name menu button ("peti": log out / lock) is removed; the Start menu has those buttons
+#   - a minimalist, colourless icon set for the battery and the desktop icons (minimal-icons.sh)
 #   - nm-applet in indicator mode + Wi-Fi signal icons from the icon theme (nm-signal-icons.sh)
 # The previous values are saved once; panel-look.sh --undo puts them back.
 set -euo pipefail
@@ -66,6 +68,15 @@ writes() {
     fi
 }
 
+# plugin-ids of a panel as a space-separated list, and the reverse
+panel_ids() { q -p "$1/plugin-ids" 2>/dev/null | sed -n 's/^\([0-9][0-9]*\)$/\1/p' | paste -sd' '; }
+set_panel_ids() {
+    local panel="$1"; shift
+    local args=() id
+    for id in "$@"; do args+=(-t int -s "$id"); done
+    q -p "$panel/plugin-ids" --force-array "${args[@]}"
+}
+
 if [ "${1:-}" = --undo ]; then
     if [ ! -f "$BACKUP" ]; then echo "[skip] no saved panel settings"; exit 0; fi
     stopped=0; if panel_running; then xfce4-panel -q || true; stopped=1; sleep 1; fi
@@ -73,6 +84,8 @@ if [ "${1:-}" = --undo ]; then
         case "$kind" in
             x) if [ "$value" = "<unset>" ]; then q -p "$path" -r 2>/dev/null || true; else q -p "$path" -n -t "$type" -s "$value"; fi ;;
             f) cp -f "$STATE/$path" "$PANEL_DIR/$(basename "$path" .bak)" 2>/dev/null || true ;;
+            a) # shellcheck disable=SC2086
+               set_panel_ids "$path" $value ;;
         esac
     done < "$BACKUP"
     if [ -f "$GTK_CSS" ] && grep -qE "easylinux-(whisker|panel-padding)" "$GTK_CSS"; then
@@ -82,6 +95,8 @@ if [ "${1:-}" = --undo ]; then
     fi
     rm -f "$AUTOSTART" "$BACKUP"
     bash "$SCRIPT_DIR/nm-signal-icons.sh" --undo
+    bash "$SCRIPT_DIR/minimal-icons.sh" --undo
+    [ -x "$HOME/.local/bin/easylinux-theme" ] && "$HOME/.local/bin/easylinux-theme" refresh || true
     if [ "$stopped" = 1 ]; then (setsid xfce4-panel >/dev/null 2>&1 &); fi
     echo "[✓] Panel look restored"
     exit 0
@@ -95,6 +110,9 @@ if [ ! -f "$BACKUP" ]; then
         old="$(q -p "$path" 2>/dev/null || echo "<unset>")"
         printf 'x\t%s\t%s\t%s\n' "$path" "$type" "$old" >> "$BACKUP"
     done < <(writes)
+    for panel in $(panel_paths); do
+        printf 'a\t%s\t-\t%s\n' "$panel" "$(panel_ids "$panel")" >> "$BACKUP"
+    done
     for rc in "$PANEL_DIR"/battery-*.rc; do
         [ -f "$rc" ] || continue
         cp -f "$rc" "$STATE/$(basename "$rc").bak"
@@ -110,6 +128,14 @@ for rc in "$PANEL_DIR"/battery-*.rc; do
     [ -f "$rc" ] || continue
     sed -i 's/^display_icon=.*/display_icon=true/; s/^display_bar=.*/display_bar=false/' "$rc"
 done
+# drop the user-name menu button ("actions" plugin) from the panels
+actions="$(plugin_ids actions | paste -sd' ')"
+if [ -n "$actions" ]; then
+    for panel in $(panel_paths); do
+        keep=(); for id in $(panel_ids "$panel"); do case " $actions " in *" $id "*) ;; *) keep+=("$id") ;; esac; done
+        set_panel_ids "$panel" "${keep[@]}"
+    done
+fi
 if [ "$stopped" = 1 ]; then (setsid xfce4-panel >/dev/null 2>&1 &); fi
 echo "[✓] Panel $SIZE px, icons $ICON_SIZE px (tray $TRAY_ICON_SIZE px), locked, battery icon, flat weather icons, start menu ${MENU_H}px, wide Start button"
 
@@ -150,4 +176,6 @@ if [ -f /etc/xdg/autostart/nm-applet.desktop ]; then
         pkill -x nm-applet || true; (setsid nm-applet --indicator >/dev/null 2>&1 &)
     fi
 fi
+bash "$SCRIPT_DIR/minimal-icons.sh" || true
+[ -x "$HOME/.local/bin/easylinux-theme" ] && "$HOME/.local/bin/easylinux-theme" refresh || true
 bash "$SCRIPT_DIR/nm-signal-icons.sh" || true
