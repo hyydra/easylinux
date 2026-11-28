@@ -4,8 +4,23 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROG="${EASYLINUX_PROG:-$0}"
 
+# Run a command as root. In a graphical session with the package installed this shows the polkit
+# administrator prompt (like Windows UAC) instead of asking for sudo in a terminal; the polkit
+# action only allows this command to run the root-owned scripts of its own install directory.
+POLKIT_POLICY="${EASYLINUX_POLKIT_POLICY:-/usr/share/polkit-1/actions/org.easylinux.policy}"
 as_root() {
-    if [ "$(id -u)" -eq 0 ]; then "$@"; else sudo "$@"; fi
+    if [ "$(id -u)" -eq 0 ]; then "$@"; return; fi
+    if [ -z "${EASYLINUX_NO_POLKIT:-}" ] && [ -n "${DISPLAY:-}${WAYLAND_DISPLAY:-}" ] \
+       && command -v pkexec >/dev/null 2>&1 && [ -f "$POLKIT_POLICY" ] \
+       && [ "$1" = bash ] && [ "$(stat -c %U "$ROOT_DIR")" = root ] && [ ! -w "$ROOT_DIR" ]; then
+        local script="${2#"$ROOT_DIR"/}" exe
+        exe="$(grep -o '[^>]*/bin/easylinux<' "$POLKIT_POLICY" | head -1)"; exe="${exe%<}"
+        if [ "$script" != "$2" ] && [ -x "$exe" ]; then
+            pkexec "$exe" --as-root "$script" "${@:3}"
+            return
+        fi
+    fi
+    sudo "$@"
 }
 
 # Run one step; never abort the whole run because one module is not applicable.
@@ -200,6 +215,15 @@ else
         --scroll)
             shift
             EASYLINUX_PROG="$PROG" bash "$ROOT_DIR/hardware/thinkpad-x280/set-scroll-direction.sh" "$@"
+            ;;
+        --as-root)   # called through pkexec only: run one shipped script as root
+            shift
+            rel="${1:-}"; shift || true
+            if [ "$(id -u)" -ne 0 ] && [ -z "${ES_TEST:-}" ]; then echo "[-] --as-root is for pkexec (root) only"; exit 1; fi
+            if [ -z "$rel" ] || [ "${rel#/}" != "$rel" ] || [ "${rel#*..}" != "$rel" ] || [ "${rel%.sh}" = "$rel" ] || [ ! -f "$ROOT_DIR/$rel" ]; then
+                echo "[-] Refusing to run '$rel': only shipped *.sh scripts of $ROOT_DIR are allowed"; exit 1
+            fi
+            exec bash "$ROOT_DIR/$rel" "$@"
             ;;
         --version)
             cat "$ROOT_DIR/VERSION" 2>/dev/null || echo "unknown"

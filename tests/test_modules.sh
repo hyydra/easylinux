@@ -46,6 +46,20 @@ if [ "$(id -u)" -eq 0 ]; then echo "  skip --system dispatch (running as root wo
     assert_lacks "$SB/out" "fix-system-errors.sh" "other laptop: hardware fixes skipped"
 fi
 
+echo "-- graphical admin prompt: --as-root only runs shipped scripts"
+mkdir -p "$SB/rd/sub"; cp install.sh VERSION "$SB/rd/"; printf '#!/bin/sh\necho "RAN $*"\n' > "$SB/rd/sub/ok.sh"; printf 'x\n' > "$SB/rd/plain.txt"
+ar() { ES_TEST=1 bash "$SB/rd/install.sh" --as-root "$@" > "$SB/out" 2>&1; }
+ar sub/ok.sh a b; assert_contains "$SB/out" "RAN a b" "a shipped script runs, with its arguments"
+ar ../etc/passwd.sh; assert_contains "$SB/out" "Refusing" "path traversal is refused"
+ar /bin/true.sh;     assert_contains "$SB/out" "Refusing" "absolute paths are refused"
+ar plain.txt;        assert_contains "$SB/out" "Refusing" "non-script files are refused"
+ar sub/missing.sh;   assert_contains "$SB/out" "Refusing" "unknown scripts are refused"
+env -u ES_TEST bash install.sh --as-root sub/ok.sh > "$SB/out" 2>&1; assert_contains "$SB/out" "pkexec (root) only" "a normal user cannot call --as-root directly"
+sed 's|@PREFIX@|/usr|' packaging/org.easylinux.policy.in > "$SB/policy"
+assert_contains "$SB/policy" 'org.freedesktop.policykit.exec.path">/usr/bin/easylinux<' "polkit action is bound to the easylinux command"
+assert_contains "$SB/policy" "<allow_active>auth_admin_keep</allow_active>" "an administrator password is required (remembered briefly)"
+assert_lacks "$SB/policy" "yes</allow" "no action is granted without authentication"
+
 echo "-- set-scroll-direction"
 S=hardware/thinkpad-x280/set-scroll-direction.sh
 bash "$S" bogus >/dev/null 2>&1; assert_eq "$?" 1 "invalid direction rejected"
@@ -160,13 +174,13 @@ assert_contains "$SB/cfgt/systemd/user/easylinux-theme.timer" "OnCalendar=*:0/10
 assert_contains "$SB/state/easylinux/theme-backup" "Greybird" "original theme saved (not overwritten by the second run)"
 EASYLINUX_NOW=21:30 th "$TB" --timer
 assert_eq "$(cat "$XF/xsettings_Net_ThemeName")" Yaru-dark "21:30: timer switches to dark"
-assert_eq "$(cat "$XF/xsettings_Net_IconThemeName")" Yaru-dark "dark icons (Yaru without Papirus)"
-mkdir -p "$SB/icons/Papirus-Light" "$SB/icons/Papirus-Dark"
+assert_eq "$(cat "$XF/xsettings_Net_IconThemeName")" Yaru-dark "dark icons (Yaru without elementary)"
+mkdir -p "$SB/icons/elementary"; : > "$SB/icons/elementary/index.theme"
 EASYLINUX_NOW=21:40 th "$TB" auto
-assert_eq "$(cat "$XF/xsettings_Net_IconThemeName")" Papirus-Dark "with Papirus installed: Papirus-Dark at night"
+assert_eq "$(cat "$XF/xsettings_Net_IconThemeName")" elementary "with elementary installed: elementary icons at night"
 EASYLINUX_NOW=10:00 th "$TB" auto
-assert_eq "$(cat "$XF/xsettings_Net_IconThemeName")" Papirus-Light "and Papirus-Light by day"
-rm -rf "$SB/icons/Papirus-Light" "$SB/icons/Papirus-Dark"; EASYLINUX_NOW=21:30 th "$TB" auto
+assert_eq "$(cat "$XF/xsettings_Net_IconThemeName")" elementary "and by day"
+rm -rf "$SB/icons/elementary"; EASYLINUX_NOW=21:30 th "$TB" auto
 assert_eq "$(cat "$XF/xfwm4_general_theme")" Yaru-dark-hdpi "dark window frame at hdpi"
 assert_eq "$(cat "$XF/gs_color-scheme")" prefer-dark "apps told dark"
 EASYLINUX_NOW=06:59 th "$TB" --timer

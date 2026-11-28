@@ -35,9 +35,9 @@ Take a fresh Linux install and make it behave the way you expect, in one command
 - Uses the `kitty` terminal: selection + `Ctrl+C` copies, no selection + `Ctrl+C` still interrupts (also over ssh), like Windows Terminal.
 
 #### Yaru Theme (`desktop/theme`)
-- One consistent look instead of Xubuntu's mix of Greybird (flat grey GTK) and the plain Default window frame, which made dialogs look unpolished: Yaru for GTK and window frames (sized by screen DPI), Papirus icons (Papirus-Light / Papirus-Dark from the official `papirus-icon-theme` package; Yaru icons if it is not installed), Noto Sans as the UI font: `easylinux --theme` (per user, no root; part of `--user`).
+- One consistent look instead of Xubuntu's mix of Greybird (flat grey GTK) and the plain Default window frame, which made dialogs look unpolished: Yaru for GTK and window frames (sized by screen DPI), elementary icons (official `elementary-icon-theme` package; Yaru icons if it is not installed), Noto Sans as the UI font: `easylinux --theme` (per user, no root; part of `--user`).
 - **Light/dark cycle:** light from 07:00, dark from 19:00 (a `systemd --user` timer checks every 10 minutes and at login). Also sets the freedesktop colour-scheme hint, so GTK4, Chrome and Electron apps follow. Change the times in `~/.config/easylinux/theme.conf`.
-- With a new icon theme, Ubuntu's `snapd-desktop-integration` may offer to install it as a snap for snap apps. Answer **No**: the Papirus snap in the Snap Store is from an unverified third-party publisher.
+- Why elementary and not Papirus: with Papirus, Ubuntu's `snapd-desktop-integration` keeps offering to install it as a snap for snap apps, and that snap comes from an unverified third-party publisher. elementary (like Yaru) is already provided to snaps by Canonical's `gtk-common-themes`, so nothing prompts.
 - `easylinux-theme light|dark|toggle` picks one by hand and keeps it; `easylinux-theme auto` goes back to the schedule.
 - The previous values are saved once; `desktop/theme/uninstall.sh` restores them and removes the timer.
 
@@ -98,6 +98,13 @@ Distro-, init- and bootloader-independent. Every script that changes system file
 make test        # runs tests/run.sh: rollback, GRUB hardening, boot guard, modules, .deb build
 ```
 The tests run fully sandboxed (temp dirs, stubbed `sudo`, fake `grub-mkconfig`); they never touch the real `/etc`, GRUB or packages. They also run on every push (GitHub Actions) and gate every release. What they cannot cover: real boots, real GRUB, real hardware, non-Ubuntu distros.
+
+## Administrator prompt instead of sudo
+
+In a graphical session the installed package asks for the administrator password in a normal window (polkit, the Linux counterpart of Windows UAC) instead of `sudo` in a terminal. It is as safe as sudo: the password is still required, the dialog names the action ("easylinux wants to change system settings"), and the password is remembered for a few minutes, so a multi-step run asks once.
+- The polkit action `org.easylinux.apply` is bound to the installed, root-owned `easylinux` command, which (through `--as-root`) runs nothing but the `*.sh` scripts shipped in its own install directory; path tricks (`..`, absolute paths) are refused.
+- From a git checkout, or without a graphical session, `sudo` is used as before (set `EASYLINUX_NO_POLKIT=1` to force it).
+- Needs a polkit authentication agent in the session; XFCE/Xubuntu already runs one (`policykit-1-gnome`, `mate-polkit` or `lxpolkit`), and the package recommends one.
 
 ## Install as a package
 

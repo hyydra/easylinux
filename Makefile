@@ -7,10 +7,12 @@ SHARE   := $(DESTDIR)$(PREFIX)/share/easylinux
 .PHONY: install uninstall deb tarball test clean
 
 install:
-	install -d $(SHARE) $(DESTDIR)$(PREFIX)/bin $(DESTDIR)/etc/easylinux $(DESTDIR)/etc/xdg/autostart
+	install -d $(SHARE) $(DESTDIR)$(PREFIX)/bin $(DESTDIR)/etc/easylinux $(DESTDIR)/etc/xdg/autostart $(DESTDIR)/usr/share/polkit-1/actions
 	cp -a install.sh VERSION README.md desktop hardware safety $(SHARE)/
 	install -m 755 packaging/easylinux $(DESTDIR)$(PREFIX)/bin/easylinux
 	install -m 755 packaging/easylinux-user-setup $(DESTDIR)$(PREFIX)/bin/easylinux-user-setup
+	sed 's|@PREFIX@|$(PREFIX)|' packaging/org.easylinux.policy.in > $(DESTDIR)/usr/share/polkit-1/actions/org.easylinux.policy
+	chmod 644 $(DESTDIR)/usr/share/polkit-1/actions/org.easylinux.policy
 	sed 's|@PREFIX@|$(PREFIX)|' packaging/easylinux-user.desktop > $(DESTDIR)/etc/xdg/autostart/easylinux-user.desktop
 	chmod 644 $(DESTDIR)/etc/xdg/autostart/easylinux-user.desktop
 	[ -e $(DESTDIR)/etc/easylinux/easylinux.conf ] || install -m 644 packaging/easylinux.conf $(DESTDIR)/etc/easylinux/easylinux.conf
@@ -19,7 +21,7 @@ install:
 uninstall:
 	rm -rf $(SHARE)
 	rm -f $(DESTDIR)$(PREFIX)/bin/easylinux $(DESTDIR)$(PREFIX)/bin/easylinux-user-setup
-	rm -f $(DESTDIR)/etc/xdg/autostart/easylinux-user.desktop
+	rm -f $(DESTDIR)/etc/xdg/autostart/easylinux-user.desktop $(DESTDIR)/usr/share/polkit-1/actions/org.easylinux.policy
 
 test:
 	bash tests/run.sh

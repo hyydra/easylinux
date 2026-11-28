@@ -1,5 +1,5 @@
 #!/bin/sh
-# easylinux theme: Yaru light/dark for GTK and window frames, Papirus (or Yaru) icons, plus the freedesktop
+# easylinux theme: Yaru light/dark for GTK and window frames, elementary (or Yaru) icons, plus the freedesktop
 # colour-scheme hint that GTK4/libadwaita, Chrome and Electron apps follow.
 #   light | dark      switch now and stay there (automatic switching off)
 #   toggle            flip light <-> dark and stay there
@@ -37,10 +37,10 @@ apply() {   # $1 = light|dark
     [ -d "$THEMES/$frame/xfwm4" ] || frame="Yaru"
     xfconf-query -c xsettings -p /Net/ThemeName -n -t string -s "Yaru$suffix"
     xfconf-query -c xfwm4 -p /general/theme -n -t string -s "$frame"
-    # Papirus (official Ubuntu package papirus-icon-theme) when installed, else Yaru.
-    # Papirus-Light has dark panel icons for the light panel, Papirus-Dark the reverse.
-    if [ -d "$ICONS/Papirus-Light" ] && [ -d "$ICONS/Papirus-Dark" ]; then
-        icons="Papirus-Light"; [ "$1" = dark ] && icons="Papirus-Dark"
+    # elementary (official Ubuntu package elementary-icon-theme) when installed, else Yaru.
+    # elementary has one variant; its symbolic panel icons follow the light/dark GTK theme.
+    if [ -d "$ICONS/elementary/apps" ] || [ -f "$ICONS/elementary/index.theme" ]; then
+        icons="elementary"
     else
         icons="Yaru$suffix"
     fi
