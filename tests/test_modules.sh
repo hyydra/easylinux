@@ -184,6 +184,22 @@ assert_eq "$rc" 1 "missing Yaru theme is reported as a failure"
 assert_contains "$SB/out" "apt install yaru-theme-gtk" "and says how to install it"
 unset XF
 
+echo "-- global keyboard: layout indicator as text"
+cat > "$SB/bin/xfconf-query" <<'STUB'
+#!/bin/sh
+case "$*" in
+    *" -l"*) echo /plugins/plugin-18 ;;
+    *"-p /plugins/plugin-18") echo xkb ;;
+    *" -s "*) echo "$@" >> "$KB" ;;
+esac
+STUB
+chmod +x "$SB/bin/xfconf-query"; export KB="$SB/kb"
+PATH="$SB/bin:$PATH" bash desktop/xfce-global-keyboard/set-global-keyboard.sh >/dev/null 2>&1
+assert_contains "$KB" "/plugins/plugin-18/group-policy -n -t uint -s 0" "layout is global"
+assert_contains "$KB" "/plugins/plugin-18/display-type -n -t uint -s 1" "indicator shows text, not a flag"
+assert_contains "$KB" "/plugins/plugin-18/display-name -n -t uint -s 1" "indicator shows the language"
+unset KB
+
 echo "-- keyring module"
 S=desktop/keyring/setup-keyring.sh
 mkdir -p "$SB/pam"; printf '@include common-auth\n@include common-session\n' > "$SB/pam/lightdm"

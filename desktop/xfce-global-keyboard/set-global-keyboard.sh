@@ -14,6 +14,11 @@ for p in $PLUGINS; do
         echo "Found XKB panel plugin: $p"
         xfconf-query -c xfce4-panel -p "${p}/group-policy" -n -t uint -s 0
         echo "[✓] Set ${p}/group-policy = 0 (Globally)"
+        # show the layout as text ("hu", "en") instead of a flag, sized like the other panel text
+        xfconf-query -c xfce4-panel -p "${p}/display-type" -n -t uint -s 1
+        xfconf-query -c xfce4-panel -p "${p}/display-name" -n -t uint -s 1
+        xfconf-query -c xfce4-panel -p "${p}/display-scale" -n -t uint -s 55
+        echo "[✓] Layout indicator shows the language as text instead of a flag"
         COUNT=$((COUNT + 1))
     fi
 done
