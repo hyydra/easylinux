@@ -52,6 +52,7 @@ apply_user() {
     if command -v xfconf-query >/dev/null 2>&1; then
         step "Yaru theme" bash "$ROOT_DIR/desktop/theme/install.sh"
         step "Panel look" bash "$ROOT_DIR/desktop/theme/panel-look.sh"
+        step "Desktop layout" bash "$ROOT_DIR/desktop/theme/desktop-layout.sh"
     fi
     if is_thinkpad_x280; then
         step "ThinkPad X280 Thunderbolt firmware check" bash "$ROOT_DIR/hardware/thinkpad-x280/check-thunderbolt-firmware.sh" --notify
@@ -91,6 +92,7 @@ install_all() {
     echo ""
     bash "$ROOT_DIR/desktop/theme/install.sh"
     bash "$ROOT_DIR/desktop/theme/panel-look.sh"
+    bash "$ROOT_DIR/desktop/theme/desktop-layout.sh"
     echo ""
     bash "$ROOT_DIR/desktop/suspend-keys/install.sh"
     echo ""
@@ -183,6 +185,7 @@ else
         --theme)
             bash "$ROOT_DIR/desktop/theme/install.sh"
             bash "$ROOT_DIR/desktop/theme/panel-look.sh"
+            bash "$ROOT_DIR/desktop/theme/desktop-layout.sh"
             ;;
         --tbt-check)
             bash "$ROOT_DIR/hardware/thinkpad-x280/check-thunderbolt-firmware.sh"

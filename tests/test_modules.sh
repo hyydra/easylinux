@@ -328,6 +328,30 @@ assert_lacks "$SB/pl/conf/gtk-3.0/gtk.css" "easylinux-panel-padding" "including 
 assert_contains "$SB/pl/conf/gtk-3.0/gtk.css" ".dim-label" "and keeps the user's own CSS"
 unset XPL
 
+echo "-- desktop layout"
+mkdir -p "$SB/dl/xp"
+cat > "$SB/dl/xfconf-query" <<'STUB'
+#!/bin/sh
+c=""; p=""; v=""; mode=get
+while [ $# -gt 0 ]; do case "$1" in -c) c="$2"; shift ;; -p) p="$2"; shift ;; -s) v="$2"; mode=set; shift ;; -r) mode=rm ;; esac; shift; done
+f="$XDL/$c$(echo "$p" | tr / _)"
+case $mode in get) [ -f "$f" ] && cat "$f" || exit 1 ;; set) echo "$v" > "$f" ;; rm) rm -f "$f" ;; esac
+STUB
+chmod +x "$SB/dl/xfconf-query"; export XDL="$SB/dl/xp"
+echo 0 > "$XDL/xfce4-desktop_desktop-icons_gravity"; echo 4 > "$XDL/xfwm4_general_workspace_count"
+dl() { ES_TEST=1 XDG_STATE_HOME="$SB/dl/state" PATH="$SB/dl:$PATH" bash desktop/theme/desktop-layout.sh "$@" > "$SB/out" 2>&1; }
+dl; dl
+assert_eq "$(cat "$XDL/xfce4-desktop_desktop-icons_gravity")" 2 "icons at the far right (top right, by columns)"
+assert_eq "$(cat "$XDL/xfce4-desktop_desktop-icons_confirm-sorting")" false "no arrange confirmation"
+assert_eq "$(cat "$XDL/xfwm4_general_workspace_count")" 1 "a single workspace"
+assert_eq "$(cat "$XDL/xfce4-desktop_backdrop_single-workspace-mode")" true "same desktop on every workspace"
+assert_contains "$SB/dl/state/easylinux/desktop-layout-backup" "workspace_count	int	4" "original workspace count saved (not overwritten by the second run)"
+dl --undo
+assert_eq "$(cat "$XDL/xfce4-desktop_desktop-icons_gravity")" 0 "undo restores the icon placement"
+assert_eq "$(cat "$XDL/xfwm4_general_workspace_count")" 4 "undo restores the workspace count"
+assert_no_file "$XDL/xfce4-desktop_desktop-icons_confirm-sorting" "undo unsets values that were not set before"
+unset XDL
+
 echo "-- keyring module"
 S=desktop/keyring/setup-keyring.sh
 mkdir -p "$SB/pam"; printf '@include common-auth\n@include common-session\n' > "$SB/pam/lightdm"
