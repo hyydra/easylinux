@@ -200,6 +200,41 @@ assert_contains "$KB" "/plugins/plugin-18/display-type -n -t uint -s 1" "indicat
 assert_contains "$KB" "/plugins/plugin-18/display-name -n -t uint -s 1" "indicator shows the language"
 unset KB
 
+echo "-- layout indicator replaces the xkb plugin"
+mkdir -p "$SB/xp"
+cat > "$SB/bin/xfconf-query" <<'STUB'
+#!/bin/sh
+# xfconf stub: one file per property (arrays = one value per line), channel ignored
+p=""; vals=""; mode=get; arr=0
+while [ $# -gt 0 ]; do case "$1" in
+    -p) p="$2"; shift ;; -s) vals="$vals$2
+"; mode=set; shift ;; -l) mode=list ;; -r) mode=rm ;; --force-array) arr=1 ;; esac; shift; done
+f="$XP/$(echo "$p" | tr / _)"
+case $mode in
+    list) for x in "$XP"/*; do basename "$x" | tr _ /; done ;;
+    get)  [ -f "$f" ] || exit 1
+          if [ "$(wc -l < "$f")" -gt 1 ] || [ -f "$f.arr" ]; then printf 'Value is an array with %s items:\n\n' "$(wc -l < "$f")"; fi
+          cat "$f" ;;
+    set)  printf '%s' "$vals" > "$f"; if [ "$arr" = 1 ]; then : > "$f.arr"; fi ;;
+    rm)   rm -f "$f" "$f.arr" "$f"_* ;;
+esac
+STUB
+chmod +x "$SB/bin/xfconf-query"; export XP="$SB/xp"
+printf '1\n' > "$XP/_panels"; : > "$XP/_panels.arr"
+printf '1\n6\n18\n8\n' > "$XP/_panels_panel-1_plugin-ids"; : > "$XP/_panels_panel-1_plugin-ids.arr"
+echo whiskermenu > "$XP/_plugins_plugin-1"; echo systray > "$XP/_plugins_plugin-6"; echo xkb > "$XP/_plugins_plugin-18"; echo clock > "$XP/_plugins_plugin-8"
+li() { HOME="$SB/home" PATH="$SB/bin:$PATH" bash desktop/xfce-global-keyboard/layout-indicator.sh "$@" > "$SB/out" 2>&1; }
+li; li
+assert_eq "$(paste -sd' ' "$XP/_panels_panel-1_plugin-ids")" "1 6 19 8" "genmon takes the xkb plugin's place on the panel"
+assert_eq "$(cat "$XP/_plugins_plugin-19")" genmon "new plugin is a Generic Monitor"
+assert_contains "$XP/_plugins_plugin-19_command" "easylinux-layout genmon-19" "it runs easylinux-layout with its own name"
+assert_contains "$SB/out" "already installed" "second run changes nothing"
+assert_file "$SB/home/.local/bin/easylinux-layout" "helper installed"
+li --undo
+assert_eq "$(paste -sd' ' "$XP/_panels_panel-1_plugin-ids")" "1 6 18 8" "undo puts the xkb plugin back"
+assert_no_file "$XP/_plugins_plugin-19" "undo removes the genmon plugin"
+unset XP
+
 echo "-- keyring module"
 S=desktop/keyring/setup-keyring.sh
 mkdir -p "$SB/pam"; printf '@include common-auth\n@include common-session\n' > "$SB/pam/lightdm"

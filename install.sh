@@ -29,6 +29,7 @@ apply_user() {
     if command -v xfce4-panel >/dev/null 2>&1 && command -v xfconf-query >/dev/null 2>&1; then
         step "XFCE panel watchdog" bash "$ROOT_DIR/desktop/xfce-panel-watchdog/install.sh"
         step "Global keyboard layout" bash "$ROOT_DIR/desktop/xfce-global-keyboard/set-global-keyboard.sh"
+        step "Keyboard layout indicator" bash "$ROOT_DIR/desktop/xfce-global-keyboard/layout-indicator.sh"
     else
         echo "[skip] XFCE not found: panel watchdog and global keyboard layout"
     fi
@@ -66,6 +67,7 @@ install_all() {
     bash "$ROOT_DIR/desktop/xfce-panel-watchdog/install.sh"
     echo ""
     bash "$ROOT_DIR/desktop/xfce-global-keyboard/set-global-keyboard.sh"
+    bash "$ROOT_DIR/desktop/xfce-global-keyboard/layout-indicator.sh"
     echo ""
     bash "$ROOT_DIR/desktop/windows-clipboard/install.sh"
     echo ""
@@ -156,6 +158,7 @@ else
             ;;
         --keyboard)
             bash "$ROOT_DIR/desktop/xfce-global-keyboard/set-global-keyboard.sh"
+            bash "$ROOT_DIR/desktop/xfce-global-keyboard/layout-indicator.sh"
             ;;
         --clipboard)
             bash "$ROOT_DIR/desktop/windows-clipboard/install.sh"

@@ -27,7 +27,7 @@ Take a fresh Linux install and make it behave the way you expect, in one command
 #### XFCE Global Keyboard Layout (`desktop/xfce-global-keyboard`)
 - Prevents language/layout resets between different application windows.
 - Enforces a single global layout policy across the entire desktop.
-- The panel's layout indicator shows the language as text (`hu`, `en`) instead of a flag.
+- The panel's layout indicator shows the language in capitals in the normal panel font (`HU`, `US`) instead of a flag: the stock xkb plugin hard-codes a bold monospace font and lowercase codes, so it is replaced by a Generic Monitor (genmon) plugin running `easylinux-layout`. Clicking it switches to the next layout. Undo: `desktop/xfce-global-keyboard/layout-indicator.sh --undo`.
 
 #### Windows-style Clipboard (`desktop/windows-clipboard`)
 - `Ctrl+C` / `Ctrl+V` copy and paste everywhere, including the terminal; never Shift+Ctrl.
