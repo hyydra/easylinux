@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # logind: the power button and the suspend key put the machine to sleep (default: power off).
 # Needs the per-user install.sh in this folder for XFCE (so xfce4-power-manager lets logind
-# handle the keys). Note: a ThinkPad X280 never delivers a short power-button press, so there
-# the Fn+4 key is the one that matters.
+# handle the keys). Install this BEFORE using the power button once the per-user part is
+# active: until then logind's default (power off) applies.
 set -euo pipefail
 
 if [ "$EUID" -ne 0 ] && [ -z "${ES_TEST:-}" ]; then

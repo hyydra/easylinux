@@ -44,7 +44,7 @@ A curated collection of automated fixers, watchdogs, and desktop utilities for L
 #### Suspend Keys (`desktop/suspend-keys`)
 - On some machines xfce4-power-manager takes the suspend/power keys away from logind but does not act on them: logind logs `Suspend key pressed short.` and nothing sleeps (seen on the X280 with Fn+4). `easylinux --suspend-keys` tells it to leave those keys to logind (per user) and sets `HandlePowerKey=suspend` / `HandleSuspendKey=suspend` in a logind drop-in (root; the default for the power button is power off). Part of `--user` / `--system`.
 - Do not bind the keys to `systemctl suspend` as well: both would fire and the machine suspends twice.
-- The X280 firmware does not deliver a *short* power-button press to the OS at all (the kernel's `ff_pwr_btn` counter stays 0; only the long press, handled in hardware, works). That cannot be fixed in software, so use Fn+4 or the lid. Waking with the power button does work.
+- The short power-button press does reach logind on the X280 (`Power key pressed short.`), even though the kernel's `ff_pwr_btn` counter stays 0. Until `HandlePowerKey=suspend` is set, logind's default (power off) applies, so run the root part (`sudo easylinux --suspend-keys`) before pressing the button.
 
 #### Password Keyring (`desktop/keyring`)
 - Installs GNOME Keyring, its PAM module, Seahorse and `secret-tool` so browsers, Wi-Fi, git and mail clients can store passwords and the keyring unlocks with the login: `sudo easylinux --keyring` (also part of `--system`).
