@@ -42,7 +42,7 @@ A curated collection of automated fixers, watchdogs, and desktop utilities for L
 - Fn+Space cycles off / dim / bright; `easylinux-kbd-backlight up|down|cycle|on|off|status` works from a terminal too.
 
 #### Suspend Keys (`desktop/suspend-keys`)
-- On some machines xfce4-power-manager takes the suspend/power keys away from logind but does not act on them: logind logs `Suspend key pressed short.` and nothing sleeps (seen on the X280 with Fn+4). `easylinux --suspend-keys` tells it to leave those keys to logind (per user) and sets `HandlePowerKey=suspend` / `HandleSuspendKey=suspend` in a logind drop-in (root; the default for the power button is power off). Part of `--user` / `--system`.
+- On some machines xfce4-power-manager takes the suspend/power keys away from logind but does not act on them: logind logs `Suspend key pressed short.` and nothing sleeps (seen on the X280 with Fn+4). `easylinux --suspend-keys` tells it to leave those keys to logind and to do nothing itself (otherwise one press suspends via logind and also pops up xfpm's own "hibernate?" dialog; per user) and sets `HandlePowerKey=suspend` / `HandleSuspendKey=suspend` in a logind drop-in (root; the default for the power button is power off). Part of `--user` / `--system`.
 - Do not bind the keys to `systemctl suspend` as well: both would fire and the machine suspends twice.
 - The short power-button press does reach logind on the X280 (`Power key pressed short.`), even though the kernel's `ff_pwr_btn` counter stays 0. Until `HandlePowerKey=suspend` is set, logind's default (power off) applies, so run the root part (`sudo easylinux --suspend-keys`) before pressing the button.
 

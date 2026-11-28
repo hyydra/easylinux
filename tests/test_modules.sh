@@ -111,6 +111,7 @@ printf '#!/bin/sh\necho "$@" >> %s/xfconf\n' "$SB" > "$SB/bin/xfconf-query"; chm
 PATH="$SB/bin:$PATH" bash desktop/suspend-keys/install.sh >/dev/null 2>&1
 assert_contains "$SB/xfconf" "/xfce4-power-manager/logind-handle-suspend-key -n -t bool -s true" "xfpm leaves the suspend key to logind"
 assert_contains "$SB/xfconf" "/xfce4-power-manager/logind-handle-power-key -n -t bool -s true" "xfpm leaves the power key to logind"
+assert_contains "$SB/xfconf" "/xfce4-power-manager/power-button-action -n -t uint -s 0" "xfpm's own power-button action is off (no second handler)"
 EASYLINUX_LOGIND_DROPIN="$SB/logind.conf" bash desktop/suspend-keys/setup-system.sh >/dev/null 2>&1
 assert_contains "$SB/logind.conf" "HandlePowerKey=suspend" "logind: power button suspends"
 assert_contains "$SB/logind.conf" "HandleSuspendKey=suspend" "logind: suspend key suspends"

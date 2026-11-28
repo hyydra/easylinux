@@ -26,7 +26,12 @@ done
 for prop in logind-handle-suspend-key logind-handle-power-key logind-handle-hibernate-key; do
     xfconf-query -c xfce4-power-manager -p "/xfce4-power-manager/$prop" -n -t bool -s true
 done
-echo "[✓] xfce4-power-manager now leaves the suspend/power/hibernate keys to logind"
+# xfce4-power-manager also reacts to the X key itself (its own button action) unless told not to:
+# then one press suspends via logind AND pops up xfpm's own "hibernate?" dialog.
+for prop in power-button-action sleep-button-action hibernate-button-action; do
+    xfconf-query -c xfce4-power-manager -p "/xfce4-power-manager/$prop" -n -t uint -s 0
+done
+echo "[✓] xfce4-power-manager now leaves the suspend/power/hibernate keys to logind (its own button actions: nothing)"
 
 # the inhibitor lock is taken at startup
 if pgrep -x xfce4-power-manager >/dev/null 2>&1 && [ -z "${ES_TEST:-}" ]; then
