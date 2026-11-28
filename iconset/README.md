@@ -1,4 +1,4 @@
-# easyset icons
+# easyset linux icons
 
 A free, minimalist icon theme: one stroke style (grey outline, rounded caps, 24 px grid), no
 colour, about 440 SVG icons: apps (terminal, files, browser, mail, editor, settings, ...),
@@ -13,7 +13,7 @@ and a battery set with charging bolts, including the symbolic names GTK and upow
 tar xzf easyset-icons-*.tar.gz -C ~/.local/share/icons/     # or /usr/share/icons (root)
 gtk-update-icon-cache -f -t ~/.local/share/icons/easyset
 ```
-Then choose **easyset** in your desktop's appearance settings (XFCE: Settings ->
+Then choose **easyset linux** in your desktop's appearance settings (XFCE: Settings ->
 Appearance -> Icons; GNOME: Tweaks). It inherits Adwaita, so any icon it does not draw comes from there.
 
 ## Build it yourself

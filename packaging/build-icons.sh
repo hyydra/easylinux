@@ -10,7 +10,7 @@ DIR="$STAGE/$NAME"; mkdir -p "$DIR"
 python3 -I desktop/theme/make-icons.py "$DIR" >/dev/null
 cat > "$DIR/index.theme" <<EOF
 [Icon Theme]
-Name=easyset
+Name=easyset linux
 Comment=Minimalist grey outline icons (CC0)
 Inherits=Adwaita,hicolor
 Directories=scalable
