@@ -1,4 +1,4 @@
-# easylinux
+# easyset linux (easylinux)
 
 A curated collection of automated fixers, watchdogs, and desktop utilities for Linux.
 

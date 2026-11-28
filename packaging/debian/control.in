@@ -9,7 +9,7 @@ Suggests: snapper, timeshift
 Maintainer: hyydra <hyydra@users.noreply.github.com>
 Homepage: https://github.com/hyydra/easylinux
 Installed-Size: @SIZE@
-Description: One-command Linux desktop and hardware settings with a safety net
+Description: easyset linux: one-command Linux desktop and hardware settings with a safety net
  Windows-style Ctrl+C/Ctrl+V (also in the terminal), one global keyboard
  layout, a self-restarting XFCE panel and ThinkPad X280 fixes. Every system
  change is snapshotted first, GRUB is hardened so the boot menu never waits
