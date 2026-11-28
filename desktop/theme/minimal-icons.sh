@@ -71,45 +71,19 @@ for lvl in range(0, 101, 10):
 write("symbolic", "battery-level-100-charged-symbolic", svg(100, True, True))
 write("symbolic", "battery-missing-symbolic", svg(0, False, True, missing=True))
 
-# ---- desktop icons (48x48, flat, two tones) ----
-def svg48(body):
-    return '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">\n%s\n</svg>\n' % body
-def put(ctx, names, text):
-    for n in names:
-        with open(os.path.join(out, ctx, "scalable", n + ".svg"), "w") as f: f.write(text)
-
-FOLDER_BACK = '<path d="M5 12.5a3 3 0 0 1 3-3h11l4 4h17a3 3 0 0 1 3 3V37a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3z" fill="#6b7280"/>'
-FOLDER_FRONT = '<path d="M5 17.5a3 3 0 0 1 3-3h32a3 3 0 0 1 3 3V37a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3z" fill="#9ca3af"/>'
-folder = svg48(FOLDER_BACK + FOLDER_FRONT)
-home = svg48(FOLDER_BACK + FOLDER_FRONT +
-             '<path d="M24 20.5l-8 7h2.4V35h4.2v-4.6h2.8V35h4.2v-7.5H32z" fill="#ffffff"/>')
-put("places", ["folder", "inode-directory", "folder-open"], folder)
-put("places", ["user-home", "folder-home"], home)
-
-BIN = '<path d="M13 16h22l-1.6 21a3 3 0 0 1-3 2.8H17.6a3 3 0 0 1-3-2.8z" fill="#8792a2"/>' \
-      '<rect x="10.5" y="11.5" width="27" height="3.6" rx="1.8" fill="#6b7686"/>' \
-      '<path d="M19.5 9h9a1.5 1.5 0 0 1 1.5 1.5v1h-12v-1A1.5 1.5 0 0 1 19.5 9z" fill="#6b7686"/>'
-LINES = '<path d="M19 20v15M24 20v15M29 20v15" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" opacity=".85"/>'
-put("places", ["user-trash", "edittrash"], svg48(BIN + LINES))
-put("places", ["user-trash-full"], svg48(BIN + LINES +
-    '<path d="M16 15.5l3-5 4 3 3-4.6 3.6 4 3.6-2.6 1.8 5.2z" fill="#f5f7fa" stroke="#6b7686" stroke-width="1" stroke-linejoin="round"/>'))
-
-DISK = '<rect x="6" y="14" width="36" height="20" rx="4" fill="#8792a2"/>' \
-       '<rect x="6" y="14" width="36" height="7" rx="3.5" fill="#6b7686"/>' \
-       '<circle cx="35" cy="28" r="1.8" fill="#e5e7eb"/><rect x="11" y="26.2" width="14" height="3.6" rx="1.8" fill="#ffffff" opacity=".85"/>'
-put("devices", ["drive-harddisk", "drive-harddisk-system", "drive-harddisk-solidstate"], svg48(DISK))
-USB = '<rect x="6" y="15" width="36" height="18" rx="4" fill="#8792a2"/>' \
-      '<rect x="6" y="15" width="12" height="18" rx="4" fill="#6b7686"/>' \
-      '<circle cx="36" cy="24" r="2" fill="#e5e7eb"/><path d="M22 24h8" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity=".85"/>'
-put("devices", ["drive-removable-media", "drive-removable-media-usb", "drive-optical", "drive-multidisk"], svg48(USB))
 PY
+
+# the outline icon set (apps, places, devices, tray, battery names): one scalable directory
+SELF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+mkdir -p "$DIR/scalable"
+python3 -I "$SELF_DIR/make-icons.py" "$DIR" >/dev/null
 
 cat > "$DIR/index.theme" <<EOF
 [Icon Theme]
 Name=easylinux
 Comment=Minimalist battery icons on top of $PARENT
 Inherits=$PARENT,hicolor
-Directories=status/scalable,status/symbolic,places/scalable,devices/scalable
+Directories=scalable,status/scalable,status/symbolic
 
 [status/scalable]
 Size=48
@@ -125,19 +99,12 @@ MaxSize=512
 Type=Scalable
 Context=Status
 
-[places/scalable]
+[scalable]
 Size=48
 MinSize=8
 MaxSize=512
 Type=Scalable
-Context=Places
-
-[devices/scalable]
-Size=48
-MinSize=8
-MaxSize=512
-Type=Scalable
-Context=Devices
+Context=Applications
 EOF
 gtk-update-icon-cache -f -t "$DIR" >/dev/null 2>&1 || true
 echo "[✓] $(find "$DIR" -name '*.svg' | wc -l) minimalist icons in the 'easylinux' icon theme (inherits $PARENT)"

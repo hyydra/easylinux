@@ -366,7 +366,7 @@ echo "-- minimalist, colourless icon set"
 MI=desktop/theme/minimal-icons.sh
 XDG_DATA_HOME="$SB/mi" bash "$MI" > "$SB/out" 2>&1
 D="$SB/mi/icons/easylinux"
-for n in status/scalable/battery-full-charging status/scalable/battery-low status/scalable/xfce4-battery-ok-charging status/symbolic/battery-level-50-symbolic places/scalable/user-home places/scalable/user-trash devices/scalable/drive-harddisk devices/scalable/drive-removable-media; do assert_file "$D/$n.svg" "icon $n"; done
+for n in scalable/battery-full-charging scalable/battery-low scalable/xfce4-battery-ok-charging status/symbolic/battery-level-50-symbolic scalable/user-home scalable/user-trash scalable/drive-harddisk scalable/drive-removable-media; do assert_file "$D/$n.svg" "icon $n"; done
 assert_contains "$D/index.theme" "Inherits=elementary,hicolor" "overlay inherits the main icon theme (only adds icons)"
 python3 -I -c "
 import glob, sys, xml.etree.ElementTree as ET

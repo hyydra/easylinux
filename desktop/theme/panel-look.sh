@@ -58,6 +58,7 @@ writes() {
         printf '/plugins/plugin-%s/show-button-title\tbool\ttrue\n' "$id"
         printf '/plugins/plugin-%s/button-title\tstring\tStart\n' "$id"
         printf '/plugins/plugin-%s/show-button-icon\tbool\ttrue\n' "$id"
+        printf '/plugins/plugin-%s/button-icon\tstring\teasylinux-start\n' "$id"
     done
     for id in $(plugin_ids systray); do
         printf '/plugins/plugin-%s/icon-size\tuint\t%s\n' "$id" "$TRAY_ICON_SIZE"
