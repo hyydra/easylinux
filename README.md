@@ -106,7 +106,7 @@ The tests run fully sandboxed (temp dirs, stubbed `sudo`, fake `grub-mkconfig`);
 
 ## Free icon set
 
-The outline icons are also available on their own as **easylinux Minimal** (CC0, public domain): `make icons` builds `dist/easylinux-minimal-icons-<version>.tar.gz`, which every release ships. See [iconset/README.md](iconset/README.md).
+The outline icons are also available on their own as **easyset** (CC0, public domain): `make icons` builds `dist/easyset-icons-<version>.tar.gz`, which every release ships. See [iconset/README.md](iconset/README.md).
 
 ## Administrator prompt instead of sudo
 

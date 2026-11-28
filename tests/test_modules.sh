@@ -382,12 +382,12 @@ XDG_DATA_HOME="$SB/mi" bash "$MI" --undo > /dev/null 2>&1
 assert_no_file "$D" "--undo removes the overlay"
 
 echo "-- standalone icon theme package"
-(cd "$TEST_ROOT" && bash packaging/build-icons.sh >/dev/null 2>&1); IC="dist/easylinux-minimal-icons-$(cat VERSION).tar.gz"
+(cd "$TEST_ROOT" && bash packaging/build-icons.sh >/dev/null 2>&1); IC="dist/easyset-icons-$(cat VERSION).tar.gz"
 assert_file "$IC" "make icons builds the tarball"
 tar -tzf "$IC" > "$SB/ic"
-assert_contains "$SB/ic" "easylinux-minimal/index.theme" "it has an index.theme"
-assert_contains "$SB/ic" "easylinux-minimal/LICENSE" "it ships the CC0 license"
-assert_contains "$SB/ic" "easylinux-minimal/scalable/user-home.svg" "and the icons"
+assert_contains "$SB/ic" "easyset/index.theme" "it has an index.theme"
+assert_contains "$SB/ic" "easyset/LICENSE" "it ships the CC0 license"
+assert_contains "$SB/ic" "easyset/scalable/user-home.svg" "and the icons"
 
 echo "-- keyring module"
 S=desktop/keyring/setup-keyring.sh
