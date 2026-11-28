@@ -160,7 +160,13 @@ assert_contains "$SB/cfgt/systemd/user/easylinux-theme.timer" "OnCalendar=*:0/10
 assert_contains "$SB/state/easylinux/theme-backup" "Greybird" "original theme saved (not overwritten by the second run)"
 EASYLINUX_NOW=21:30 th "$TB" --timer
 assert_eq "$(cat "$XF/xsettings_Net_ThemeName")" Yaru-dark "21:30: timer switches to dark"
-assert_eq "$(cat "$XF/xsettings_Net_IconThemeName")" Yaru-dark "dark icons"
+assert_eq "$(cat "$XF/xsettings_Net_IconThemeName")" Yaru-dark "dark icons (Yaru without Papirus)"
+mkdir -p "$SB/icons/Papirus-Light" "$SB/icons/Papirus-Dark"
+EASYLINUX_NOW=21:40 th "$TB" auto
+assert_eq "$(cat "$XF/xsettings_Net_IconThemeName")" Papirus-Dark "with Papirus installed: Papirus-Dark at night"
+EASYLINUX_NOW=10:00 th "$TB" auto
+assert_eq "$(cat "$XF/xsettings_Net_IconThemeName")" Papirus-Light "and Papirus-Light by day"
+rm -rf "$SB/icons/Papirus-Light" "$SB/icons/Papirus-Dark"; EASYLINUX_NOW=21:30 th "$TB" auto
 assert_eq "$(cat "$XF/xfwm4_general_theme")" Yaru-dark-hdpi "dark window frame at hdpi"
 assert_eq "$(cat "$XF/gs_color-scheme")" prefer-dark "apps told dark"
 EASYLINUX_NOW=06:59 th "$TB" --timer

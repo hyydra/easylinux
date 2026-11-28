@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
-# One consistent, modern look for XFCE: Yaru for GTK widgets, window frames and icons, Noto Sans,
+# One consistent, modern look for XFCE: Yaru for GTK widgets and window frames, Papirus icons, Noto Sans,
 # with automatic light/dark switching by time of day (default 07:00 light, 19:00 dark).
 # The stock Xubuntu setup mixes Greybird (flat grey GTK) with the plain Default xfwm4 frame, so
 # dialogs look unpolished. Per user, no root; the previous values are saved once and
-# uninstall.sh puts them back. Needs yaru-theme-gtk, yaru-theme-icon (and fonts-noto-core).
+# uninstall.sh puts them back. Needs yaru-theme-gtk; papirus-icon-theme and fonts-noto-core are
+# used when installed. Only packages from the distribution's official archive; nothing is
+# installed from here (and no third-party snaps).
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -40,6 +42,10 @@ if [ ! -f "$BACKUP" ]; then
     } > "$BACKUP"
 fi
 
+ICONS="${EASYLINUX_ICONS_DIR:-/usr/share/icons}"
+if [ ! -d "$ICONS/Papirus-Light" ]; then
+    echo "[i] Papirus icons not installed (official package): sudo apt install papirus-icon-theme; using Yaru icons until then"
+fi
 if command -v fc-list >/dev/null 2>&1 && fc-list : family | grep -qx 'Noto Sans'; then
     xfconf-query -c xsettings -p /Gtk/FontName -n -t string -s "Noto Sans 10"
     xfconf-query -c xfwm4 -p /general/title_font -n -t string -s "Noto Sans Bold 10"

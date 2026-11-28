@@ -4,7 +4,7 @@ Section: utils
 Priority: optional
 Architecture: all
 Depends: bash, coreutils, findutils, procps
-Recommends: kitty, xserver-xorg-input-synaptics, gnome-keyring, libpam-gnome-keyring, seahorse, libsecret-tools, yaru-theme-gtk, yaru-theme-icon, fonts-noto-core, xfce4-genmon-plugin
+Recommends: kitty, xserver-xorg-input-synaptics, gnome-keyring, libpam-gnome-keyring, seahorse, libsecret-tools, yaru-theme-gtk, yaru-theme-icon, papirus-icon-theme, fonts-noto-core, xfce4-genmon-plugin
 Suggests: snapper, timeshift
 Maintainer: hyydra <hyydra@users.noreply.github.com>
 Homepage: https://github.com/hyydra/easylinux

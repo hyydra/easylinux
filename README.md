@@ -14,6 +14,7 @@ Take a fresh Linux install and make it behave the way you expect, in one command
 2. Detect, don't assume: no hard-wired distro, init or desktop where it can be avoided.
 3. Idempotent and reversible: run twice, same result; every module can be undone.
 4. Honest output: what was changed, what was skipped, what was not tested.
+5. Verified sources only: packages come from the distribution's official, signed archive (or Lenovo's firmware via LVFS); no third-party snaps, PPAs or downloads.
 
 ## Modules
 
@@ -34,8 +35,9 @@ Take a fresh Linux install and make it behave the way you expect, in one command
 - Uses the `kitty` terminal: selection + `Ctrl+C` copies, no selection + `Ctrl+C` still interrupts (also over ssh), like Windows Terminal.
 
 #### Yaru Theme (`desktop/theme`)
-- One consistent look instead of Xubuntu's mix of Greybird (flat grey GTK) and the plain Default window frame, which made dialogs look unpolished: Yaru for GTK, window frames (sized by screen DPI) and icons, Noto Sans as the UI font: `easylinux --theme` (per user, no root; part of `--user`).
+- One consistent look instead of Xubuntu's mix of Greybird (flat grey GTK) and the plain Default window frame, which made dialogs look unpolished: Yaru for GTK and window frames (sized by screen DPI), Papirus icons (Papirus-Light / Papirus-Dark from the official `papirus-icon-theme` package; Yaru icons if it is not installed), Noto Sans as the UI font: `easylinux --theme` (per user, no root; part of `--user`).
 - **Light/dark cycle:** light from 07:00, dark from 19:00 (a `systemd --user` timer checks every 10 minutes and at login). Also sets the freedesktop colour-scheme hint, so GTK4, Chrome and Electron apps follow. Change the times in `~/.config/easylinux/theme.conf`.
+- With a new icon theme, Ubuntu's `snapd-desktop-integration` may offer to install it as a snap for snap apps. Answer **No**: the Papirus snap in the Snap Store is from an unverified third-party publisher.
 - `easylinux-theme light|dark|toggle` picks one by hand and keeps it; `easylinux-theme auto` goes back to the schedule.
 - The previous values are saved once; `desktop/theme/uninstall.sh` restores them and removes the timer.
 
