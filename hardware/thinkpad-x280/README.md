@@ -27,3 +27,29 @@ Usage:
 ```bash
 sudo ./setup-touchpad-split.sh
 ```
+
+## Known issue: charging stops / charger not detected (Thunderbolt firmware)
+
+**HU:** A töltés időnként vagy teljesen leáll, akármilyen töltővel és kábellel. A power gomb LED-je bedugáskor villog, a rendszer nem látja a töltőt, vagy 1-2 másodpercre látja és elengedi.
+**EN:** Charging stops now and then or entirely, with any charger and cable. The power-button LED blinks on plug-in; the OS does not see the charger, or sees it for 1-2 s and loses it again.
+
+**Cause / Ok:** The X280 charges **only over USB-C**, and the power negotiation (USB-PD) runs through the Thunderbolt 3 controller. Its old firmware (**NVM 14.00** and earlier) is the known 2018 ThinkPad Thunderbolt bug (X280, T480, T480s, X1 Carbon 6, ...): it wears out its own flash and USB-C, including charging, starts failing. Lenovo's fix is **NVM 20.00**.
+
+**Diagnose:**
+```bash
+cat /sys/bus/thunderbolt/devices/0-0/nvm_version   # 14.0 or lower = affected
+cat /sys/class/power_supply/AC/online              # 0 although the charger is plugged in
+ls /sys/class/typec/                               # no port*-partner = nothing negotiated
+```
+
+**Fix (tested on this X280, 2026-11-28):** flash the Thunderbolt firmware from LVFS with `fwupd`. Only that device; the BIOS (1.59) and EC (1.15) were already current.
+```bash
+sudo apt install fwupd
+fwupdmgr get-devices                      # note the "Thunderbolt host controller" Device ID
+sudo fwupdmgr update <Device ID>          # 14.00 -> 20.00
+```
+`fwupd` refuses to flash without AC power ("Device requires AC power to be connected") and `--force` does not override that. If the charger is not detected at all, set `IgnorePower=true` under `[fwupd]` in `/etc/fwupd/fwupd.conf`, run `sudo systemctl restart fwupd`, flash, then **remove the setting again**. The Thunderbolt update is small (258 kB) and is written to the inactive flash bank, but flashing on battery is at your own risk; have at least ~30% charge.
+
+**After flashing:** unplug and replug the charger. For a few minutes it may still connect and drop every ~4 s ("Not charging" for a second); then it settled and charged at ~39 W. If it does not settle: shut down completely, unplug for 30 s, plug in while off, or do an EC reset (pinhole on the bottom, 10 s, without charger).
+
+**Not the cause (checked):** the Linux UCSI driver (`ucsi_acpi`). Unloading and reloading it and replugging made no difference, so do not blacklist it. The battery itself was healthy (84% of design capacity, 166 cycles).

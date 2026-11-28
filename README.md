@@ -56,6 +56,7 @@ A curated collection of automated fixers, watchdogs, and desktop utilities for L
 - Fixes TrackPoint / clickpad conflicts (`synaptics_intertouch=0`).
 - Touchpad resume reload hook after suspend.
 - Fixes for udev power rules, obsolete ALSA ioctls, and crash dump cleanup.
+- **Charging stops / charger not detected:** old Thunderbolt firmware (NVM 14.00). Fix: flash NVM 20.00 with `fwupd`. See [hardware/thinkpad-x280/README.md](hardware/thinkpad-x280/README.md#known-issue-charging-stops--charger-not-detected-thunderbolt-firmware).
 
 #### ThinkPad X280 Touchpad Full-Height Split (`hardware/thinkpad-x280`)
 - Fixes `libinput` issue where mid/top clicks on the right side register as left clicks.
