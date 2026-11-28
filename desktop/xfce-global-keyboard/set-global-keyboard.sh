@@ -31,6 +31,15 @@ fi
 if command -v gsettings >/dev/null 2>&1; then
     gsettings set org.freedesktop.ibus.general use-global-engine true 2>/dev/null || true
     echo "[✓] Configured IBus use-global-engine = true"
+    # With a single plain keyboard engine IBus adds nothing but a second, redundant "EN" tray icon,
+    # and its menu pops up in the top-left corner of the screen (not by the icon), where it goes
+    # unnoticed and grabs the keyboard, so e.g. Print Screen stops working. Hide only the icon when
+    # IBus has no real input method (more than one engine, or a non-xkb one, keeps it visible).
+    engines="$(gsettings get org.freedesktop.ibus.general preload-engines 2>/dev/null || true)"
+    if printf '%s' "$engines" | grep -qE "^(@as \[\]|\['xkb:[^']*'\])$"; then
+        gsettings set org.freedesktop.ibus.panel show-icon-on-systray false 2>/dev/null || true
+        echo "[✓] Hid the redundant IBus tray icon (its menu opens in the screen corner)"
+    fi
 fi
 
 echo "=== Done! Keyboard language is now global and will not switch between windows. ==="

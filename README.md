@@ -29,6 +29,7 @@ Take a fresh Linux install and make it behave the way you expect, in one command
 - Prevents language/layout resets between different application windows.
 - Enforces a single global layout policy across the entire desktop.
 - The panel's layout indicator shows the language in capitals in the normal panel font (`HU`, `US`) instead of a flag: the stock xkb plugin hard-codes a bold monospace font and lowercase codes, so it is replaced by a Generic Monitor (genmon) plugin running `easylinux-layout`. Clicking it switches to the next layout. Undo: `desktop/xfce-global-keyboard/layout-indicator.sh --undo`.
+- Hides IBus's redundant "EN" tray icon when IBus has no real input method (only plain keyboard engines): its menu opens in the top-left corner of the screen instead of by the icon, where it goes unnoticed and grabs the keyboard, so Print Screen and other shortcuts stop working until you click elsewhere. IBus itself keeps running; bring the icon back with `gsettings set org.freedesktop.ibus.panel show-icon-on-systray true`.
 
 #### Windows-style Clipboard (`desktop/windows-clipboard`)
 - `Ctrl+C` / `Ctrl+V` copy and paste everywhere, including the terminal; never Shift+Ctrl.

@@ -220,6 +220,23 @@ assert_contains "$KB" "/plugins/plugin-18/display-type -n -t uint -s 1" "indicat
 assert_contains "$KB" "/plugins/plugin-18/display-name -n -t uint -s 1" "indicator shows the language"
 unset KB
 
+echo "-- IBus tray icon is hidden only when IBus has no real input method"
+cat > "$SB/bin/gsettings" <<'STUB'
+#!/bin/sh
+case "$1 $2 $3" in
+    "get org.freedesktop.ibus.general preload-engines") echo "$IBUS_ENGINES" ;;
+    "set org.freedesktop.ibus.panel show-icon-on-systray") echo "$4" >> "$GS" ;;
+esac
+STUB
+chmod +x "$SB/bin/gsettings"; export GS="$SB/gs"
+printf '#!/bin/sh\nexit 0\n' > "$SB/bin/xfconf-query"; chmod +x "$SB/bin/xfconf-query"
+gk() { rm -f "$GS"; IBUS_ENGINES="$1" PATH="$SB/bin:$PATH" bash desktop/xfce-global-keyboard/set-global-keyboard.sh >/dev/null 2>&1; }
+gk "['xkb:us::eng']";                assert_contains "$GS" "false" "single xkb engine: tray icon hidden"
+gk "@as []";                         assert_contains "$GS" "false" "no engine: tray icon hidden"
+gk "['xkb:us::eng', 'mozc-jp']";     assert_no_file "$GS" "a real input method keeps the tray icon"
+gk "['xkb:us::eng', 'xkb:hu::hun']"; assert_no_file "$GS" "more than one engine keeps the tray icon"
+unset GS IBUS_ENGINES; rm -f "$SB/bin/gsettings"
+
 echo "-- layout indicator replaces the xkb plugin"
 mkdir -p "$SB/xp"
 cat > "$SB/bin/xfconf-query" <<'STUB'
