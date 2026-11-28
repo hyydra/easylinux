@@ -16,6 +16,10 @@ Take a fresh Linux install and make it behave the way you expect, in one command
 4. Honest output: what was changed, what was skipped, what was not tested.
 5. Verified sources only: packages come from the distribution's official, signed archive (or Lenovo's firmware via LVFS); no third-party snaps, PPAs or downloads.
 
+## XFCE is the base
+
+easyset linux is built on top of **XFCE**: the look (theme, icons, panel, desktop layout) and the settings are XFCE-based, and the hardware and safety layers work on any Linux. On a machine without XFCE, `sudo easyset --xfce` installs it from the distribution's official archive (also part of `--system`), then `easyset --user` applies the look. `easyset --doctor` shows what a machine has before anything is changed.
+
 ## Modules
 
 ### 1. Desktop Tweaks (`desktop/`)

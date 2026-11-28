@@ -68,6 +68,7 @@ apply_user() {
 apply_system() {
     step "Boot hardening (GRUB guard, rollback)" as_root bash "$ROOT_DIR/safety/harden-boot.sh"
     step "Suspend keys (logind)" as_root bash "$ROOT_DIR/desktop/suspend-keys/setup-system.sh"
+    step "XFCE base desktop" as_root bash "$ROOT_DIR/desktop/xfce-base/setup-xfce.sh"
     step "Password keyring" as_root bash "$ROOT_DIR/desktop/keyring/setup-keyring.sh"
     step "Keyboard backlight at boot and wake-up" as_root bash "$ROOT_DIR/desktop/kbd-backlight/setup-boot.sh"
     if is_thinkpad_x280; then
@@ -231,6 +232,9 @@ else
             fi
             exec bash "$ROOT_DIR/$rel" "$@"
             ;;
+        --xfce)
+            as_root bash "$ROOT_DIR/desktop/xfce-base/setup-xfce.sh"
+            ;;
         --doctor)
             bash "$ROOT_DIR/hardware/generic/doctor.sh"
             ;;
@@ -242,7 +246,7 @@ else
             as_root bash "$ROOT_DIR/safety/easylinux-rollback.sh" "$@"
             ;;
         *)
-            echo "Usage: ${PROG##*/} [--user | --system | --boot | --version | --panel | --thinkpad | --touchpad | --keyboard | --clipboard | --kbd-backlight | --kbd-backlight-boot | --suspend-keys | --keyring | --theme | --tbt-check | --doctor | --tbt-update | --scroll natural|traditional|toggle | --all | --rollback [--list|snapshot]]"
+            echo "Usage: ${PROG##*/} [--user | --system | --boot | --version | --panel | --thinkpad | --touchpad | --keyboard | --clipboard | --kbd-backlight | --kbd-backlight-boot | --suspend-keys | --keyring | --theme | --tbt-check | --doctor | --xfce | --tbt-update | --scroll natural|traditional|toggle | --all | --rollback [--list|snapshot]]"
             exit 1
             ;;
     esac

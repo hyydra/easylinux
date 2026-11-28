@@ -398,6 +398,15 @@ EASYLINUX_DMI_DIR="$SB/dmid" bash install.sh --doctor > "$SB/out" 2>&1
 assert_contains "$SB/out" "Hardware profile: Apple" "recognises a Mac"
 rm -rf "$SB/dmid"; EASYLINUX_DMI_DIR="$SB/dmid" bash install.sh --doctor > "$SB/out" 2>&1; assert_eq "$?" 0 "unknown hardware does not break it"
 
+echo "-- XFCE base installer"
+mkdir -p "$SB/xb"; printf '#!/bin/sh\nexit 1\n' > "$SB/xb/dpkg"; printf '#!/bin/sh\nexit 0\n' > "$SB/xb/apt-cache"; printf '#!/bin/sh\necho "apt-get $*" >> %s/aptlog\n' "$SB" > "$SB/xb/apt-get"
+chmod +x "$SB/xb/"*
+PATH="$SB/xb:$PATH" bash desktop/xfce-base/setup-xfce.sh > "$SB/out" 2>&1
+assert_contains "$SB/aptlog" "install -y" "missing XFCE packages are installed through apt"
+assert_contains "$SB/aptlog" "xfce4" "including xfce4"
+rm -f "$SB/aptlog"; EASYLINUX_NO_PKG=1 PATH="$SB/xb:$PATH" bash desktop/xfce-base/setup-xfce.sh > "$SB/out" 2>&1
+assert_no_file "$SB/aptlog" "with package installation disabled nothing is installed"
+
 echo "-- keyring module"
 S=desktop/keyring/setup-keyring.sh
 mkdir -p "$SB/pam"; printf '@include common-auth\n@include common-session\n' > "$SB/pam/lightdm"
