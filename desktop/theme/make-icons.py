@@ -53,8 +53,8 @@ def folder_with(inner):
 
 GLYPHS = {
     "terminal": ('<rect x="3" y="4.5" width="18" height="15" rx="2.5"/><path d="M7.5 10l3 2.5-3 2.5M12.5 15h4"/>',
-                 "utilities-terminal org.xfce.terminal xfce4-terminal"),
-    "files": (FOLDER, "system-file-manager org.xfce.thunar Thunar folder inode-directory folder-open"),
+                 "utilities-terminal org.xfce.terminal xfce4-terminal org.gnome.Ptyxis org.gnome.Terminal gnome-terminal xterm utilities-terminal-symbolic kitty"),
+    "files": (FOLDER, "system-file-manager org.xfce.thunar Thunar thunar folder inode-directory folder-open folder-visiting folder-new folder-drag-accept org.gnome.Nautilus"),
     "home": ('<path d="M4 11.2l8-6.7 8 6.7M6.2 9.8v9.7h11.6V9.8M10 19.5v-5h4v5"/>', "user-home folder-home"),
     "trash": ('<path d="M5 7h14M9.5 7V5h5v2M7 7l.8 12.5h8.4L17 7M10.5 11v5M13.5 11v5"/>', "user-trash edittrash"),
     "trash-full": ('<path d="M5 7h14M9.5 7V5h5v2M7 7l.8 12.5h8.4L17 7M10.5 11v5M13.5 11v5M8.5 4l2-1.6M15.5 4l-2-1.6"/>', "user-trash-full"),
